@@ -29,6 +29,7 @@ int testReadRand()
     while (fscanf(reader, "%d %d", &burst, &priority) == 2)
     {
         // Simple random (1-10)
+
         randInt = rand() % 10;
 
         // Each time should have a certain amount of sleep
