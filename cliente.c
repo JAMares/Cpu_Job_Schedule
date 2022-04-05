@@ -10,6 +10,94 @@
 #define COLS 2
 #define PORT 8080
 
+
+void* autoCPU(){
+    int algorit;
+    int q;
+
+    while (algorit != 5){
+        printf("Seleccione el tipo de algoritmo: \n");
+        printf("1. FIFO \n");
+        printf("2. SJF \n");
+        printf("3. HPF \n");
+        printf("4. Round Robin \n");
+        printf("5. Si no desea continuar en el sistema \n");
+        scanf("%d",&algorit);
+        switch(algorit) {
+        case 1: printf("");
+            break;
+        case 2: printf("");
+            break;
+        case 3: exit(0);
+            break;
+        case 4: printf("Inserte el q");
+                scanf("%d",&q);
+            break;
+        case 5: exit(0);
+            break;
+        default: printf("Invalid choice!\n");
+            break;
+        }
+    }
+}
+
+void* manualCPU(){
+    char* archive;
+    int algorit;
+    int q;
+
+    while (algorit != 5){
+        printf("Digite el nombre del archivo que desea procesar \n");
+        scanf("%s",archive);
+        printf("Seleccione el tipo de algoritmo: \n");
+        printf("1. FIFO \n");
+        printf("2. SJF \n");
+        printf("3. HPF \n");
+        printf("4. Round Robin \n");
+        printf("5. Si no desea continuar en el sistema \n");
+        scanf("%d",&algorit);
+        switch(algorit) {
+        case 1: printf("");
+            break;
+        case 2: printf("");
+            break;
+        case 3: exit(0);
+            break;
+        case 4: printf("Inserte el q");
+                scanf("%d",&q);
+            break;
+        case 5: exit(0);
+            break;
+        default: printf("Invalid choice!\n");
+            break;
+        }
+    }
+}
+
+void* mainMenu(){
+    int choice;
+
+    while (choice != 3){
+        printf("Main Menu");
+        printf("\n\t----------------------");
+        printf("\n 1. Automatic CPU");
+        printf("\n 2. Run manual CPU");
+        printf("\n 3. Exit");
+        printf("\n Enter your choice \n");
+        scanf("%d",&choice);
+        switch(choice) {
+        case 1: autoCPU();
+            break;
+        case 2: manualCPU();
+            break;
+        case 3: exit(0);
+            break;
+        default: printf("Invalid choice!\n");
+            break;
+        }
+    }
+}
+
 int* randProcess(){
     
     // ARRAY TO SAVE READ DATA
@@ -112,6 +200,8 @@ int main(int argc , char *argv[])
         printf("\nConnection Failed \n");
         return -1;
     }
+
+    mainMenu();
 
     send(sock , msg , strlen(msg) , 0 );
     printf("Mensaje enviado\n");
