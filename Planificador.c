@@ -1,11 +1,12 @@
 #include <stdio.h>
-#include <time.h>
+#include "cliente.h"
 #include <stdlib.h>
-int testReadRand();
 
 int main()
 {
-    // testReadRand();
+    socketCliente();
     return 0;
 }
+
+
 

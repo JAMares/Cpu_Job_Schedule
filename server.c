@@ -6,6 +6,29 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 
+struct PCB
+{
+    int pId;
+    int burst;
+    int priority;
+    int state;
+	int timeExecute;
+};
+
+struct Node
+{
+    struct Node* next;
+    struct PCB process;
+};
+
+struct Queue
+{
+	struct Node* first;
+
+	struct Node* last;
+};
+
+
 
 int main(int argc , char *argv[])
 {

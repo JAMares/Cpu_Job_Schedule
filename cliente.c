@@ -78,7 +78,10 @@ int lengthFile()
     return line;
 }
    
-int main(int argc, char const *argv[])
+
+
+
+int main(int argc , char *argv[])
 {
     int** data;
     int length_data  = lengthFile();
@@ -114,6 +117,9 @@ int main(int argc, char const *argv[])
     printf("Mensaje enviado\n");
     valread = read( sock , buffer, 2000);
     printf("%s\n",buffer );
-	
+
     return 0;
+	
 }
+
+
