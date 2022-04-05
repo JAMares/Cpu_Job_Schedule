@@ -139,6 +139,108 @@ struct Node *searchLowestBurstProcess(struct Queue *q)
 	return lowestBurst;
 }
 
+struct Node *searchProcessById(struct Queue *q, int pId)
+{
+	struct Node *node = q->first;
+	while (node->process.pId != pId)
+	{
+		node = node->next;
+	}
+	return node;
+}
+
+void printExecution(int timeExecution)
+{
+	int timer = 0;
+	printf("<");
+	while (timer < timeExecution)
+	{
+		timer++;
+		printf("-------,");
+		sleep(1);
+	}
+	printf(">\n");
+}
+
+void fifo(struct Queue* r, struct Queue* d)
+{
+	if(r->first != NULL)
+	{
+		struct Node *initNode = r->first;
+		int burst = initNode->process.burst;
+		int timer = initNode->process.burst - initNode->process.timeExecute;
+		printExecution(timer);
+		initNode->process.timeExecute += timer;
+		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
+		finishProcess(r,d,initNode->process.pId);
+		fifo(r,d);
+	} else {
+		return;
+	}
+}
+
+void sjf(struct Queue* r, struct Queue* d)
+{
+	if(r->first != NULL)
+	{
+		struct Node *initNode = searchLowestBurstProcess(r);
+		int burst = initNode->process.burst;
+		int timer = initNode->process.burst - initNode->process.timeExecute;
+		printExecution(timer);
+		initNode->process.timeExecute += timer;
+		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
+		finishProcess(r,d,initNode->process.pId);
+		sjf(r,d);
+	} else {
+		return;
+	}
+}
+
+void hpf(struct Queue* r, struct Queue* d)
+{
+	if(r->first != NULL)
+	{
+		struct Node *initNode = searchHighestPriorityProcess(r);
+		int burst = initNode->process.burst;
+		int timer = initNode->process.burst - initNode->process.timeExecute;
+		printExecution(timer);
+		initNode->process.timeExecute += timer;
+		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
+		finishProcess(r,d,initNode->process.pId);
+		hpf(r,d);
+	} else {
+		return;
+	}
+}
+
+void RoundRobin(struct Queue* r, struct Queue* d, int quantum, int pId)
+{
+	struct Node *initNode =  searchProcessById(r, pId);
+	int time = initNode->process.burst - initNode->process.timeExecute;
+	if(time > quantum)
+	{
+		printExecution(quantum);
+		printf("Se ha ejecutado el proceso #%d con un quantum de %d\n", initNode->process.pId, quantum);
+		initNode->process.timeExecute += quantum;
+		if(initNode->next == NULL)
+			pId = r->first->process.pId;
+		else
+			pId = initNode->next->process.pId;
+	} else {
+		printExecution(time);
+		initNode->process.timeExecute += time;
+		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, initNode->process.burst);
+		finishProcess(r,d,initNode->process.pId);
+		if(r->first == NULL)
+			return;
+		else if(initNode->next == NULL)
+			pId = r->first->process.pId;
+		else
+			pId = initNode->next->process.pId;
+	}
+	RoundRobin(r,d, quantum, pId);
+}
+
 int main(int argc, char *argv[])
 {
 	struct Queue *ready = (struct Queue *)malloc(sizeof(struct Queue));
@@ -164,19 +266,33 @@ int main(int argc, char *argv[])
 	printf("process insertion 4\n");
 	insertProcess(ready, p5);
 	printf("process insertion 5\n\n");
-	printf("Printing processes in ready queue:");
-	printQueue(ready);
-	printf("\nFinishing process 3\n\n");
-	finishProcess(ready, done, 3);
-	printf("Printing processes in done queue:");
-	printQueue(done);
-	printf("\nPrinting processes in modified ready queue:");
-	printQueue(ready);
-	printf("\nChecking for highest priority process in ready queue:");
-	printNode(searchHighestPriorityProcess(ready));
-	printf("\nChecking for lowest burst process in ready queue:");
-	printNode(searchLowestBurstProcess(ready));
-	printf("\nTests finished\n");
+
+	// printf("Printing processes in ready queue:");
+	// printQueue(ready);
+	
+	// printf("\nFinishing process 3\n\n");
+	// finishProcess(ready, done, 3);
+	
+	// printf("Printing processes in done queue:");
+	// printQueue(done);
+	
+	// printf("\nPrinting processes in modified ready queue:");
+	// printQueue(ready);
+	
+	// printf("\nChecking for highest priority process in ready queue:");
+	// printNode(searchHighestPriorityProcess(ready));
+	
+	// printf("\nChecking for lowest burst process in ready queue:");
+	// printNode(searchLowestBurstProcess(ready));
+	// printf("\nTests finished\n");
+
+	// Execution of algoritms
+	// fifo(ready, done);
+	// sjf(ready, done);
+	// hpf(ready, done);
+	// RoundRobin(ready, done, 2, 0);
+
+
 	/*
 		int socket_desc, new_socket, c, valread;
 		char buffer[2000] = {};
