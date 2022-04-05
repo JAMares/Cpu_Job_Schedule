@@ -243,29 +243,29 @@ void RoundRobin(struct Queue* r, struct Queue* d, int quantum, int pId)
 
 int main(int argc, char *argv[])
 {
-	struct Queue *ready = (struct Queue *)malloc(sizeof(struct Queue));
-	struct Queue *done = (struct Queue *)malloc(sizeof(struct Queue));
-	printf("queue done\n\n");
-	ready->first = NULL;
-	ready->last = NULL;
-	done->first = NULL;
-	done->last = NULL;
-	struct PCB p1 = {.burst = 4, .pId = 0, .priority = 1, .state = 0, .timeExecute = 0};
-	struct PCB p2 = {.burst = 7, .pId = 1, .priority = 5, .state = 0, .timeExecute = 0};
-	struct PCB p3 = {.burst = 3, .pId = 2, .priority = 3, .state = 0, .timeExecute = 0};
-	struct PCB p4 = {.burst = 5, .pId = 3, .priority = 3, .state = 0, .timeExecute = 0};
-	struct PCB p5 = {.burst = 2, .pId = 4, .priority = 1, .state = 0, .timeExecute = 0};
-	printf("init done\n\n");
-	insertProcess(ready, p1);
-	printf("process insertion 1\n");
-	insertProcess(ready, p2);
-	printf("process insertion 2\n");
-	insertProcess(ready, p3);
-	printf("process insertion 3\n");
-	insertProcess(ready, p4);
-	printf("process insertion 4\n");
-	insertProcess(ready, p5);
-	printf("process insertion 5\n\n");
+	// struct Queue *ready = (struct Queue *)malloc(sizeof(struct Queue));
+	// struct Queue *done = (struct Queue *)malloc(sizeof(struct Queue));
+	// printf("queue done\n\n");
+	// ready->first = NULL;
+	// ready->last = NULL;
+	// done->first = NULL;
+	// done->last = NULL;
+	// struct PCB p1 = {.burst = 4, .pId = 0, .priority = 1, .state = 0, .timeExecute = 0};
+	// struct PCB p2 = {.burst = 7, .pId = 1, .priority = 5, .state = 0, .timeExecute = 0};
+	// struct PCB p3 = {.burst = 3, .pId = 2, .priority = 3, .state = 0, .timeExecute = 0};
+	// struct PCB p4 = {.burst = 5, .pId = 3, .priority = 3, .state = 0, .timeExecute = 0};
+	// struct PCB p5 = {.burst = 2, .pId = 4, .priority = 1, .state = 0, .timeExecute = 0};
+	// printf("init done\n\n");
+	// insertProcess(ready, p1);
+	// printf("process insertion 1\n");
+	// insertProcess(ready, p2);
+	// printf("process insertion 2\n");
+	// insertProcess(ready, p3);
+	// printf("process insertion 3\n");
+	// insertProcess(ready, p4);
+	// printf("process insertion 4\n");
+	// insertProcess(ready, p5);
+	// printf("process insertion 5\n\n");
 
 	// printf("Printing processes in ready queue:");
 	// printQueue(ready);
@@ -293,56 +293,56 @@ int main(int argc, char *argv[])
 	// RoundRobin(ready, done, 2, 0);
 
 
-	/*
-		int socket_desc, new_socket, c, valread;
-		char buffer[2000] = {};
-		char *msg = "Se envia respuesta del servidor";
+	
+	int socket_desc, new_socket, c, valread;
+	char buffer[2000] = {};
+	char *msg = "Se envia respuesta del servidor";
 
-		struct sockaddr_in server, client;
+	struct sockaddr_in server, client;
 
-		// Create socket
-		socket_desc = socket(AF_INET, SOCK_STREAM, 0);
-		if (socket_desc == -1)
-		{
-			printf("No es posible crear el socket");
-			return 1;
-		}
+	// Create socket
+	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
+	if (socket_desc == -1)
+	{
+		printf("No es posible crear el socket");
+		return 1;
+	}
 
-		// Prepare the sockaddr_in structure
-		memset(&server, 0, sizeof(server));
-		server.sin_family = AF_INET;
-		server.sin_addr.s_addr = INADDR_ANY;
-		server.sin_port = htons(8080);
+	// Prepare the sockaddr_in structure
+	memset(&server, 0, sizeof(server));
+	server.sin_family = AF_INET;
+	server.sin_addr.s_addr = INADDR_ANY;
+	server.sin_port = htons(8080);
 
-		// Bind
-		if (bind(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
-		{
-			printf("bind falla");
-			return 1;
-		}
-		puts("El bind se conecta con exito");
+	// Bind
+	if (bind(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
+	{
+		printf("bind falla");
+		return 1;
+	}
+	puts("El bind se conecta con exito");
 
-		// Listen
-		listen(socket_desc, 3);
+	// Listen
+	listen(socket_desc, 3);
 
-		// Accept and incoming connection
-		puts("Esperando para nuevos clientes...");
+	// Accept and incoming connection
+	puts("Esperando para nuevos clientes...");
 
-		// Aceptar el socket
-		c = sizeof(struct sockaddr_in);
-		new_socket = accept(socket_desc, (struct sockaddr *)&client, (socklen_t *)&c);
-		if (new_socket < 0)
-		{
-			printf("No se ha aceptado con exito");
-			return 1;
-		}
+	// Aceptar el socket
+	c = sizeof(struct sockaddr_in);
+	new_socket = accept(socket_desc, (struct sockaddr *)&client, (socklen_t *)&c);
+	if (new_socket < 0)
+	{
+		printf("No se ha aceptado con exito");
+		return 1;
+	}
 
-		puts("La conexion se ha realizado con exito");
+	puts("La conexion se ha realizado con exito");
 
-		valread = read(new_socket, buffer, 2000);
-		printf("%s\n", buffer);
-		send(new_socket, msg, strlen(msg), 0);
-		printf("Mensaje enviado\n");
-	*/
+	valread = read(new_socket, buffer, 2000);
+	printf("%s\n", buffer);
+	send(new_socket, msg, strlen(msg), 0);
+	printf("Mensaje enviado\n");
+	
 	return 0;
 }

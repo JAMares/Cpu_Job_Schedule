@@ -201,7 +201,7 @@ int main(int argc , char *argv[])
         return -1;
     }
 
-    mainMenu();
+    // mainMenu();
 
     send(sock , msg , strlen(msg) , 0 );
     printf("Mensaje enviado\n");
