@@ -174,7 +174,7 @@ int main(int argc, char *argv[])
 	printQueue(ready);
 	printf("\nChecking for highest priority process in ready queue:");
 	printNode(searchHighestPriorityProcess(ready));
-	printf("\nChecking for lowest burt process in ready queue:");
+	printf("\nChecking for lowest burst process in ready queue:");
 	printNode(searchLowestBurstProcess(ready));
 	printf("\nTests finished\n");
 	/*
