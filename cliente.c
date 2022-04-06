@@ -4,11 +4,19 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <pthread.h>
 #include <string.h>
 
 #define PROCESS_MAX 20
 #define COLS 2
 #define PORT 8080
+
+
+struct Message
+{
+    int socket;
+    char* message;
+};
 
 
 void* autoCPU(){
@@ -74,7 +82,7 @@ void* manualCPU(){
     }
 }
 
-void* mainMenu(){
+void* mainMenu(int socket){
     int choice;
 
     while (choice != 3){
@@ -98,6 +106,35 @@ void* mainMenu(){
     }
 }
 
+void sendProcessSocket(void * msg)
+{
+    struct Message *my_msg = (struct Message*) msg;
+    // char buffer[2000] = {};
+    // send(msg.socket, msg.message, strlen(msg.message), 0);
+    // int valread = read( msg.socket, buffer, 2000);
+    // if(valread == 0)
+    //     return 0;
+    // else  
+    //     return 1;
+    printf("%s\n", my_msg->message);
+}
+
+void sendProcess(int burst, int priority, int tId, int socket)
+{
+    sleep(2);
+    char *msgOut;
+    asprintf(&msgOut, "%d,%d", burst, priority);
+
+    struct Message *message = malloc(sizeof(struct Message));
+    
+    message->message = msgOut;
+    message->socket = socket;
+    pthread_t thrd;
+
+    pthread_create(&thrd, NULL, sendProcessSocket, (void *)message);//Aqui aparece el fallo
+
+}
+
 int* randProcess(){
     
     // ARRAY TO SAVE READ DATA
@@ -105,8 +142,8 @@ int* randProcess(){
     
     srand(time(NULL));
 
-    int burst = rand() % (8 + 1 - 3) + 3;
-    int priority = rand() % (8 + 1 - 3) + 3;
+    int burst = rand() % (5 + 1 - 1) + 1;
+    int priority = rand() % (5 + 1 - 1) + 1;
     array[0] = burst;
     array[1] = priority;
 
@@ -114,99 +151,75 @@ int* randProcess(){
 }
 
 // Placeholder function for file reading and random gen tests
-int** testReadRand()
+int testReadRand(int socket)
 {
 
-    // ARRAY TO SAVE READ DATA
-    int **matrix = (int **)malloc(PROCESS_MAX * sizeof(int*));
-    for(int i = 0; i < 5; i++) matrix[i] = (int *)malloc(COLS * sizeof(int));
+    srand(time(NULL));
 
-    int burst, priority, row = 0;
+    int burst, priority, time, tId = 0;
 
     FILE *reader = fopen("test.txt", "r");
 
-    // If file does not exist
-    if (reader == NULL)
-    {
-        return matrix;
-    }
-
-    // checks file for each line
-    while (fscanf(reader, "%d %d", &burst, &priority) == 2)
-    {
-        matrix[row][0] = burst;
-        matrix[row][1] = priority;
-        row++;
-
-        // Each time should have a certain amount of sleep
-        // Here is where you send the data through the sockets on individual threads
-        printf("BURST=%d, PRIORITY=%d\n", burst, priority);
-    }
-    fclose(reader);
-
-    return matrix;
-}
-
-// Placeholder function for file reading and random gen tests
-int lengthFile()
-{
-    int line, burst, priority= 0;
-    FILE *reader = fopen("test.txt", "r");
     // If file does not exist
     if (reader == NULL)
     {
         return 0;
     }
+
     // checks file for each line
     while (fscanf(reader, "%d %d", &burst, &priority) == 2)
     {
-        line++;
+        time = rand() % (8 + 1 - 3) + 3;
+        sendProcess(burst, priority, tId, socket);
+        tId++;
+        sleep(time);
+
+        // Each time should have a certain amount of sleep
+        // Here is where you send the data through the sockets on individual threads
     }
     fclose(reader);
-    return line;
+
+    return 1;
 }
-   
-
-
 
 int main(int argc , char *argv[])
 {
-    int** data;
-    int length_data  = lengthFile();
-
-    int sock = 0, valread;
-    struct sockaddr_in serv_addr;
-    char *msg = "Esto es lo enviado por el cliente";
-    char buffer[2000] = {};
-    // SOCKET CREATION
-    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
-        printf("\n Socket creation error \n");
-        return -1;
-    }
+    // int sock = 0, valread;
+    // struct sockaddr_in serv_addr;
+    // char *msg = "Esto es lo enviado por el cliente";
+    // char buffer[2000] = {};
+    // // SOCKET CREATION
+    // if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    // {
+    //     printf("\n Socket creation error \n");
+    //     return -1;
+    // }
    
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
+    // serv_addr.sin_family = AF_INET;
+    // serv_addr.sin_port = htons(PORT);
        
-    // Convert IPv4 and IPv6 addresses from text to binary form
-    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) 
-    {
-        printf("\nInvalid address/ Address not supported \n");
-        return -1;
-    }
+    // // Convert IPv4 and IPv6 addresses from text to binary form
+    // if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) 
+    // {
+    //     printf("\nInvalid address/ Address not supported \n");
+    //     return -1;
+    // }
    
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-    {
-        printf("\nConnection Failed \n");
-        return -1;
-    }
+    // if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    // {
+    //     printf("\nConnection Failed \n");
+    //     return -1;
+    // }
 
-    // mainMenu();
+    // mainMenu(sock);
 
-    send(sock , msg , strlen(msg) , 0 );
-    printf("Mensaje enviado\n");
-    valread = read( sock , buffer, 2000);
-    printf("%s\n",buffer );
+    // send(sock , msg , strlen(msg) , 0 );
+    // printf("Mensaje enviado\n");
+    // valread = read( sock , buffer, 2000);
+    // printf("%s\n",buffer );
+
+    sendProcess(1, 2 , 3 , 4);
+
 
     return 0;
 	

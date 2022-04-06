@@ -327,6 +327,10 @@ int main(int argc, char *argv[])
 
 	// Accept and incoming connection
 	puts("Esperando para nuevos clientes...");
+	
+
+	
+
 
 	// Aceptar el socket
 	c = sizeof(struct sockaddr_in);
