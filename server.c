@@ -162,9 +162,9 @@ void printExecution(int timeExecution)
 	printf(">\n");
 }
 
-void fifo(struct Queue* r, struct Queue* d)
+void fifo(struct Queue *r, struct Queue *d)
 {
-	if(r->first != NULL)
+	if (r->first != NULL)
 	{
 		struct Node *initNode = r->first;
 		int burst = initNode->process.burst;
@@ -172,16 +172,18 @@ void fifo(struct Queue* r, struct Queue* d)
 		printExecution(timer);
 		initNode->process.timeExecute += timer;
 		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
-		finishProcess(r,d,initNode->process.pId);
-		fifo(r,d);
-	} else {
+		finishProcess(r, d, initNode->process.pId);
+		// fifo(r, d);
+	}
+	else
+	{
 		return;
 	}
 }
 
-void sjf(struct Queue* r, struct Queue* d)
+void sjf(struct Queue *r, struct Queue *d)
 {
-	if(r->first != NULL)
+	if (r->first != NULL)
 	{
 		struct Node *initNode = searchLowestBurstProcess(r);
 		int burst = initNode->process.burst;
@@ -189,16 +191,18 @@ void sjf(struct Queue* r, struct Queue* d)
 		printExecution(timer);
 		initNode->process.timeExecute += timer;
 		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
-		finishProcess(r,d,initNode->process.pId);
-		sjf(r,d);
-	} else {
+		finishProcess(r, d, initNode->process.pId);
+		// sjf(r, d);
+	}
+	else
+	{
 		return;
 	}
 }
 
-void hpf(struct Queue* r, struct Queue* d)
+void hpf(struct Queue *r, struct Queue *d)
 {
-	if(r->first != NULL)
+	if (r->first != NULL)
 	{
 		struct Node *initNode = searchHighestPriorityProcess(r);
 		int burst = initNode->process.burst;
@@ -206,39 +210,121 @@ void hpf(struct Queue* r, struct Queue* d)
 		printExecution(timer);
 		initNode->process.timeExecute += timer;
 		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
-		finishProcess(r,d,initNode->process.pId);
-		hpf(r,d);
-	} else {
+		finishProcess(r, d, initNode->process.pId);
+		// hpf(r, d);
+	}
+	else
+	{
 		return;
 	}
 }
 
-void RoundRobin(struct Queue* r, struct Queue* d, int quantum, int pId)
+void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 {
-	struct Node *initNode =  searchProcessById(r, pId);
+	struct Node *initNode = searchProcessById(r, pId);
 	int time = initNode->process.burst - initNode->process.timeExecute;
-	if(time > quantum)
+	if (time > quantum)
 	{
 		printExecution(quantum);
 		printf("Se ha ejecutado el proceso #%d con un quantum de %d\n", initNode->process.pId, quantum);
 		initNode->process.timeExecute += quantum;
-		if(initNode->next == NULL)
-			pId = r->first->process.pId;
-		else
-			pId = initNode->next->process.pId;
-	} else {
-		printExecution(time);
-		initNode->process.timeExecute += time;
-		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, initNode->process.burst);
-		finishProcess(r,d,initNode->process.pId);
-		if(r->first == NULL)
-			return;
-		else if(initNode->next == NULL)
+		if (initNode->next == NULL)
 			pId = r->first->process.pId;
 		else
 			pId = initNode->next->process.pId;
 	}
-	RoundRobin(r,d, quantum, pId);
+	else
+	{
+		printExecution(time);
+		initNode->process.timeExecute += time;
+		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, initNode->process.burst);
+		finishProcess(r, d, initNode->process.pId);
+		if (r->first == NULL)
+			return;
+		else if (initNode->next == NULL)
+			pId = r->first->process.pId;
+		else
+			pId = initNode->next->process.pId;
+	}
+	// RoundRobin(r, d, quantum, pId);
+}
+
+void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
+{
+	int cpu_ocioso = 0;
+	int id = 1;
+	// Verifica el algoritmo y hace lo procesa
+	switch (algorithm)
+	{
+	case 0:
+		while (1)
+		{
+			if (r->first != NULL)
+			{
+				fifo(r, d);
+			}
+			else
+			{
+				cpu_ocioso += 1;
+				// sleep(1);
+			}
+		}
+		break;
+	case 1:
+		while (1)
+		{
+			if (r->first != NULL)
+			{
+				sjf(r, d);
+			}
+			else
+			{
+				cpu_ocioso += 1;
+				// sleep(1);
+			}
+		}
+		break;
+	case 2:
+		while (1)
+		{
+			if (r->first != NULL)
+			{
+				hpf(r, d);
+			}
+			else
+			{
+				cpu_ocioso += 1;
+				// sleep(1);
+			}
+		}
+		break;
+	case 3:
+		while (1)
+		{
+			if (r->first != NULL)
+			{
+				RoundRobin(r, d, quantum, id);
+				struct Node *tmp = searchProcessById(id);
+				if (tmp->next != NULL)
+				{
+					id = tmp->next->process.pId;
+				}
+				else
+				{
+					id = r->first->process.pId;
+				}
+			}
+			else
+			{
+				cpu_ocioso += 1;
+				sleep(1);
+			}
+		}
+		break;
+	default:
+		break;
+	}
+	return;
 }
 
 int main(int argc, char *argv[])
@@ -269,19 +355,19 @@ int main(int argc, char *argv[])
 
 	// printf("Printing processes in ready queue:");
 	// printQueue(ready);
-	
+
 	// printf("\nFinishing process 3\n\n");
 	// finishProcess(ready, done, 3);
-	
+
 	// printf("Printing processes in done queue:");
 	// printQueue(done);
-	
+
 	// printf("\nPrinting processes in modified ready queue:");
 	// printQueue(ready);
-	
+
 	// printf("\nChecking for highest priority process in ready queue:");
 	// printNode(searchHighestPriorityProcess(ready));
-	
+
 	// printf("\nChecking for lowest burst process in ready queue:");
 	// printNode(searchLowestBurstProcess(ready));
 	// printf("\nTests finished\n");
@@ -292,8 +378,6 @@ int main(int argc, char *argv[])
 	// hpf(ready, done);
 	// RoundRobin(ready, done, 2, 0);
 
-
-	
 	int socket_desc, new_socket, c, valread;
 	char buffer[2000] = {};
 	char *msg = "Se envia respuesta del servidor";
@@ -327,10 +411,6 @@ int main(int argc, char *argv[])
 
 	// Accept and incoming connection
 	puts("Esperando para nuevos clientes...");
-	
-
-	
-
 
 	// Aceptar el socket
 	c = sizeof(struct sockaddr_in);
@@ -347,6 +427,6 @@ int main(int argc, char *argv[])
 	printf("%s\n", buffer);
 	send(new_socket, msg, strlen(msg), 0);
 	printf("Mensaje enviado\n");
-	
+
 	return 0;
 }
