@@ -142,11 +142,15 @@ struct Node *searchLowestBurstProcess(struct Queue *q)
 struct Node *searchProcessById(struct Queue *q, int pId)
 {
 	struct Node *node = q->first;
-	while (node->process.pId != pId)
+	while (node != NULL)
 	{
+		if (node->process.pId != pId)
+		{
+			return node;
+		}
 		node = node->next;
 	}
-	return node;
+	return NULL;
 }
 
 void printExecution(int timeExecution)
@@ -173,7 +177,7 @@ void fifo(struct Queue *r, struct Queue *d)
 		initNode->process.timeExecute += timer;
 		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
 		finishProcess(r, d, initNode->process.pId);
-		// fifo(r, d);
+		// fifo(r, d); NEXT CALL IS MANAGED BY CPU SCHEDULER
 	}
 	else
 	{
@@ -192,7 +196,7 @@ void sjf(struct Queue *r, struct Queue *d)
 		initNode->process.timeExecute += timer;
 		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
 		finishProcess(r, d, initNode->process.pId);
-		// sjf(r, d);
+		// sjf(r, d); NEXT CALL IS MANAGED BY CPU SCHEDULER
 	}
 	else
 	{
@@ -211,7 +215,7 @@ void hpf(struct Queue *r, struct Queue *d)
 		initNode->process.timeExecute += timer;
 		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
 		finishProcess(r, d, initNode->process.pId);
-		// hpf(r, d);
+		// hpf(r, d); NEXT CALL IS MANAGED BY CPU SCHEDULER
 	}
 	else
 	{
@@ -238,7 +242,7 @@ void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 		printExecution(time);
 		initNode->process.timeExecute += time;
 		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, initNode->process.burst);
-		finishProcess(r, d, initNode->process.pId);
+		// finishProcess(r, d, initNode->process.pId);
 		if (r->first == NULL)
 			return;
 		else if (initNode->next == NULL)
@@ -246,13 +250,14 @@ void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 		else
 			pId = initNode->next->process.pId;
 	}
-	// RoundRobin(r, d, quantum, pId);
+	// RoundRobin(r, d, quantum, pId); NEXT CALL IS MANAGED BY CPU SCHEDULER
 }
 
 void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
 {
 	int cpu_ocioso = 0;
 	int id = 1;
+	struct Node *tmp;
 	// Verifica el algoritmo y hace lo procesa
 	switch (algorithm)
 	{
@@ -261,12 +266,13 @@ void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
 		{
 			if (r->first != NULL)
 			{
+				// REALIZA EL ALGORITMO FIFO
 				fifo(r, d);
 			}
 			else
 			{
 				cpu_ocioso += 1;
-				// sleep(1);
+				// sleep(1); AQUI TIENE QUE SER UN SLEEP PARA EL THREAD
 			}
 		}
 		break;
@@ -275,12 +281,13 @@ void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
 		{
 			if (r->first != NULL)
 			{
+				// REALIZA EL ALGORITMO SJF
 				sjf(r, d);
 			}
 			else
 			{
 				cpu_ocioso += 1;
-				// sleep(1);
+				// sleep(1); AQUI TIENE QUE SER UN SLEEP PARA EL THREAD
 			}
 		}
 		break;
@@ -289,12 +296,13 @@ void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
 		{
 			if (r->first != NULL)
 			{
+				// REALIZA EL ALGORITMO HPF
 				hpf(r, d);
 			}
 			else
 			{
 				cpu_ocioso += 1;
-				// sleep(1);
+				// sleep(1); AQUI TIENE QUE SER UN SLEEP PARA EL THREAD
 			}
 		}
 		break;
@@ -303,21 +311,30 @@ void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
 		{
 			if (r->first != NULL)
 			{
+				// BUSCA EL NODO ACTUAL
+				tmp = searchProcessById(id);
+				// REALIZA EL ALGORITMO
 				RoundRobin(r, d, quantum, id);
-				struct Node *tmp = searchProcessById(id);
 				if (tmp->next != NULL)
 				{
+					// SI HAY SIGUIENTE PREPARA SU PROCESAMIENTo
 					id = tmp->next->process.pId;
 				}
 				else
 				{
+					// SI NO HAY SIGUIENTE PREPARA EL PRIMERO
 					id = r->first->process.pId;
+				}
+				// SI EL PROCESO ANTERIOR TERMINO LO QUITA DEL READY QUEUE
+				if (tmp->process.timeExecute >= tmp->process.burst)
+				{
+					finishProcess(r, d, tmp->process.pId);
 				}
 			}
 			else
 			{
 				cpu_ocioso += 1;
-				sleep(1);
+				// sleep(1); AQUI TIENE QUE SER UN SLEEP PARA EL THREAD
 			}
 		}
 		break;
