@@ -396,11 +396,11 @@ void JOB_Scheduler(struct Queue *r, int socket)
 
 	int seguir = 1;
 	
-		printf("Antes del while");
 	while (seguir)
 	{
 		sPID = pID + '0';
 		valread = read(socket, buffer, 2000);
+		puts(buffer);
 		dataPCB = splitChar(buffer, limit);
 
 		struct PCB *process = malloc(sizeof(struct PCB));
@@ -436,8 +436,8 @@ int main(int argc, char *argv[])
 	struct Queue *ready = (struct Queue *)malloc(sizeof(struct Queue));
 	// struct Queue *done = (struct Queue *)malloc(sizeof(struct Queue));
 	// printf("queue done\n\n");
-	// ready->first = NULL;
-	// ready->last = NULL;
+	ready->first = NULL;
+	ready->last = NULL;
 	// done->first = NULL;
 	// done->last = NULL;
 	// struct PCB p1 = {.burst = 4, .pId = 0, .priority = 1, .state = 0, .timeExecute = 0};
@@ -482,7 +482,8 @@ int main(int argc, char *argv[])
 	// hpf(ready, done);
 	// RoundRobin(ready, done, 2, 0);
 
-	int socket_desc, new_socket, c;
+	int socket_desc, new_socket, c, valread;
+	char buffer[2000] = {};
 
 	struct sockaddr_in server, client;
 
@@ -523,8 +524,11 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	puts("La conexion se ha realizado con exito");
+	// JOB_Scheduler(ready, socket_desc);
 
-	JOB_Scheduler(ready, socket_desc);
+	valread = read(socket_desc, buffer, 2000);
+	printf("%s\n",buffer);
+
 
 	return 0;
 }

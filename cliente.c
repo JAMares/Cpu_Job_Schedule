@@ -121,9 +121,9 @@ void* sendProcessSocket(void *msg)
     struct Message *my_msg = (struct Message*) msg;
     
     char buffer[2000] = {};
+    printf("%s\n", my_msg->message);
     send(my_msg->socket, my_msg->message, strlen(my_msg->message), 0);
-    int valread = read( my_msg->socket, buffer, 2000);
-    printf("%s\n", buffer);
+    // int valread = read( my_msg->socket, buffer, 2000);
     // if(valread == 0)
     //     return 0;
     // else  
