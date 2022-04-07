@@ -242,7 +242,11 @@ void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 		printExecution(time);
 		initNode->process.timeExecute += time;
 		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, initNode->process.burst);
+
+		// LA TERMINACION MANEJADA POR EL CPU SCHEDULER
+		// ESTO PARA QUE NO SE ENCUENTRE CON UN NULO CUANDO LO BUSQUE
 		// finishProcess(r, d, initNode->process.pId);
+
 		if (r->first == NULL)
 			return;
 		else if (initNode->next == NULL)
