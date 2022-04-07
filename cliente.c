@@ -152,7 +152,7 @@ void sendProcess(int burst, int priority, int socket)
     pthread_join(thrd, NULL);
 }
 
-void randProcess(){
+void randProcess(int socket){
     
     srand(time(NULL));
 

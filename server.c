@@ -2,6 +2,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h> //inet_addr
 #include <string.h>
+#include <pthread.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <netinet/in.h>
@@ -13,6 +14,7 @@ struct PCB
 	int priority;
 	int state;
 	int timeExecute;
+	struct Queue* queue;
 };
 
 struct Node
@@ -151,6 +153,31 @@ struct Node *searchProcessById(struct Queue *q, int pId)
 		node = node->next;
 	}
 	return NULL;
+}
+
+char* ConcatCharToCharArray(char *Str, char Chr)
+{
+    int len = strlen( Str );
+    char *StrResult = malloc( len + 2 );
+    strcpy(StrResult, Str);
+    StrResult[len] = Chr;
+    StrResult[len+1] = '\0';
+    return StrResult;
+}
+
+int* splitChar(char string[], char limit[])
+{
+	char* newString;
+	int *array = (int*)malloc(sizeof(int)*2);
+
+	newString = strtok(string, limit);
+	int i = strtol(newString, NULL, 10);
+	array[0] = i;
+	newString = strtok(NULL, limit);
+	i = strtol(newString, NULL, 10);
+	array[1] = i;
+	
+	return array;
 }
 
 void printExecution(int timeExecution)
@@ -316,7 +343,7 @@ void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
 			if (r->first != NULL)
 			{
 				// BUSCA EL NODO ACTUAL
-				tmp = searchProcessById(id);
+				tmp = searchProcessById(r, id);
 				// REALIZA EL ALGORITMO
 				RoundRobin(r, d, quantum, id);
 				if (tmp->next != NULL)
@@ -348,9 +375,65 @@ void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
 	return;
 }
 
+
+void* makeProcess(void *pcb)
+{
+	struct PCB *dataPCB = (struct PCB*) pcb;
+	struct PCB processToInsert = {.burst = dataPCB->burst, .pId = dataPCB->pId, .priority = dataPCB->priority, .state = 0, .timeExecute = 0, .queue = NULL};
+	insertProcess(dataPCB->queue, processToInsert);
+}
+
+void JOB_Scheduler(struct Queue *r, int socket)
+{
+	char buffer[2000] = {};
+	char *msg = "Se crea el proceso con el PID #";
+	char limit[] = ",";
+	char *answer;
+	int *dataPCB;
+	int pID, valread = 0;
+	char sPID;
+    pthread_t thrd;
+
+	int seguir = 1;
+	
+		printf("Antes del while");
+	while (seguir)
+	{
+		sPID = pID + '0';
+		valread = read(socket, buffer, 2000);
+		dataPCB = splitChar(buffer, limit);
+
+		struct PCB *process = malloc(sizeof(struct PCB));
+
+		process->burst = dataPCB[0];
+		process->priority = dataPCB[1];
+		process->pId = pID;
+		process->timeExecute = 0;
+		process->state = 0;
+		process->queue = r;
+
+		pthread_create(&thrd, NULL, makeProcess, (void *)process);
+    	pthread_join(thrd, NULL);
+
+		answer = ConcatCharToCharArray(msg, sPID);
+		send(socket, answer, strlen(answer), 0);
+		pID++;
+		sleep(2);
+		printQueue(r);
+	}
+	
+	
+	valread = read(socket, buffer, 2000);
+	printf("%s\n", buffer);
+	send(socket, msg, strlen(msg), 0);
+	printf("Mensaje enviado\n");
+	
+}
+
+
 int main(int argc, char *argv[])
 {
-	// struct Queue *ready = (struct Queue *)malloc(sizeof(struct Queue));
+	struct Queue *ready = (struct Queue *)malloc(sizeof(struct Queue));
 	// struct Queue *done = (struct Queue *)malloc(sizeof(struct Queue));
 	// printf("queue done\n\n");
 	// ready->first = NULL;
@@ -399,9 +482,7 @@ int main(int argc, char *argv[])
 	// hpf(ready, done);
 	// RoundRobin(ready, done, 2, 0);
 
-	int socket_desc, new_socket, c, valread;
-	char buffer[2000] = {};
-	char *msg = "Se envia respuesta del servidor";
+	int socket_desc, new_socket, c;
 
 	struct sockaddr_in server, client;
 
@@ -441,13 +522,9 @@ int main(int argc, char *argv[])
 		printf("No se ha aceptado con exito");
 		return 1;
 	}
-
 	puts("La conexion se ha realizado con exito");
 
-	valread = read(new_socket, buffer, 2000);
-	printf("%s\n", buffer);
-	send(new_socket, msg, strlen(msg), 0);
-	printf("Mensaje enviado\n");
+	JOB_Scheduler(ready, socket_desc);
 
 	return 0;
 }
