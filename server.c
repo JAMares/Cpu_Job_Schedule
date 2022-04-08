@@ -30,6 +30,12 @@ struct Queue
 	struct Node *last;
 };
 
+struct startJobScheduler
+{
+	struct Queue *queue;
+	int socket;
+};
+
 void printNode(struct Node *n)
 {
 	printf("\nProcess ID:%d\nBurst:%d\nPriority:%d\n", n->process.pId, n->process.burst, n->process.priority);
@@ -404,9 +410,12 @@ void *makeProcess(void *pcb)
 }
 
 // Insert received process into CPU queue
-void JOB_Scheduler(struct Queue *r, int socket)
+void *JOB_Scheduler(void *launch_data)
 {
 	// Vars to read from client socket and insert process
+	struct startJobScheduler *my_job_launch = (struct startJobScheduler *)launch_data;
+	int socket = my_job_launch->socket;
+	struct Queue *r = my_job_launch->queue;
 	char buffer[2000] = {};
 	char msg[32] = "Se crea el proceso con el PID #";
 	char limit[] = ",";
@@ -541,8 +550,15 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	puts("La conexion se ha realizado con exito");
-	JOB_Scheduler(ready, new_socket);
-	CPU_Scheduler(ready, done, 3, 3);
+
+	struct startJobScheduler *launch = malloc(sizeof(struct startJobScheduler));
+	launch->queue = ready;
+	launch->socket = new_socket;
+
+	pthread_t job;
+
+	pthread_create(&job, NULL, JOB_Scheduler, (void *)launch);
+	pthread_join(job, NULL);
 
 	// valread = read(new_socket, buffer, 2000);
 	// printf("%s\n",buffer);
