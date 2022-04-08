@@ -196,6 +196,7 @@ int testReadRand(int socket)
 
 int main(int argc , char *argv[])
 {
+	char buffer[2000] = {};
     int sock = 0, valread;
     struct sockaddr_in serv_addr;
     char *msg = "Esto es lo enviado por el cliente";

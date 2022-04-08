@@ -524,10 +524,10 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 	puts("La conexion se ha realizado con exito");
-	// JOB_Scheduler(ready, socket_desc);
+	JOB_Scheduler(ready, new_socket);
 
-	valread = read(socket_desc, buffer, 2000);
-	printf("%s\n",buffer);
+	// valread = read(new_socket, buffer, 2000);
+	// printf("%s\n",buffer);
 
 
 	return 0;
