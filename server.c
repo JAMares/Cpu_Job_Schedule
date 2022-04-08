@@ -408,13 +408,13 @@ void JOB_Scheduler(struct Queue *r, int socket)
 {
 	// Vars to read from client socket and insert process
 	char buffer[2000] = {};
-	char *msg = "Se crea el proceso con el PID #";
+	char msg[32] = "Se crea el proceso con el PID #";
 	char limit[] = ",";
 	char *answer;
 	int *dataPCB;
 	int pID = 1;
 	int valread = 0;
-	char sPID;
+	char* sPID;
     pthread_t thrd;
 
 	int read_size;
@@ -422,7 +422,7 @@ void JOB_Scheduler(struct Queue *r, int socket)
 	// Cycle to continue reading from client socket
 	while ((read_size = recv(socket, buffer, 2000, 0)) > 0)
 	{
-		sPID = numberToString(pID) ;
+		sPID = numberToString(pID);
 		dataPCB = splitChar(buffer, limit);
 
 		struct PCB *process = malloc(sizeof(struct PCB));
@@ -439,6 +439,7 @@ void JOB_Scheduler(struct Queue *r, int socket)
     	pthread_join(thrd, NULL);
 
 		// Server socket replies process id created
+		strcpy(msg, "Se crea el proceso con el PID #");
 		answer = strcat(msg, sPID);
 		send(socket, answer, strlen(answer), 0);
 		pID++;
