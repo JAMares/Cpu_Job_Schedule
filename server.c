@@ -36,6 +36,14 @@ struct startJobScheduler
 	int socket;
 };
 
+struct startCPUScheduler
+{
+	struct Queue *r;
+	struct Queue *d;
+	int algorithm;
+	int quantum;
+};
+
 void printNode(struct Node *n)
 {
 	printf("\nProcess ID:%d\nBurst:%d\nPriority:%d\n", n->process.pId, n->process.burst, n->process.priority);
@@ -298,10 +306,23 @@ void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 	// RoundRobin(r, d, quantum, pId); NEXT CALL IS MANAGED BY CPU SCHEDULER
 }
 
-void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
+void *CPU_Scheduler(void *data)
 {
+	// Inicializacion de los datos para el procesamiento
+	struct startCPUScheduler *init_data = (struct startCPUScheduler *)data;
+	// Queue de ready
+	struct Queue *r = init_data->r;
+	// Queue de procesos terminados
+	struct Queue *d = init_data->d;
+	// Quantum en caso de que se utilice para RR
+	int quantum = init_data->quantum;
+	// Tipo de algoritmo a utilizar (0->FIFO,1->SJF,2->HPF,3->RR)
+	int algorithm = init_data->algorithm;
+	// Tiempo en segundos de cpu ocioso
 	int cpu_ocioso = 0;
+	// Primer nodo a checkear para RR, siempre el primero
 	int id = 1;
+	// Nodo temporal para el manejo de orden en RR
 	struct Node *tmp;
 	// Verifica el algoritmo y hace lo procesa
 	switch (algorithm)
@@ -356,14 +377,8 @@ void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
 		{
 			if (r->first != NULL)
 			{
-				printf("ID de NODO ACTUAL: %d\nQueue Actual ------>\n", id);
-				printQueue(r);
-				printf("Fin de queue -------->\n");
 				// BUSCA EL NODO ACTUAL
 				tmp = searchProcessById(r, id);
-				printf("Nodo Actual\n");
-				printNode(tmp);
-				printf("Fin de nodo -------->\n");
 
 				// REALIZA EL ALGORITMO
 				RoundRobin(r, d, quantum, id);
@@ -371,12 +386,10 @@ void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
 				if (tmp->next != NULL)
 				{
 					// SI HAY SIGUIENTE PREPARA SU PROCESAMIENTO
-					printf("Siguiente nodo\n");
 					id = tmp->next->process.pId;
 				}
 				else
 				{
-					printf("Al primer nodo\n");
 					// SI NO HAY SIGUIENTE PREPARA EL PRIMERO
 					id = r->first->process.pId;
 				}
@@ -384,7 +397,6 @@ void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
 				// SI EL PROCESO ANTERIOR TERMINO LO QUITA DEL READY QUEUE
 				if (tmp->process.timeExecute >= tmp->process.burst)
 				{
-					printf("Termino nodo\n");
 					finishProcess(r, d, tmp->process.pId);
 				}
 			}
@@ -398,7 +410,7 @@ void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
 	default:
 		break;
 	}
-	return;
+	printf("CPU finalizado");
 }
 
 // Insert received process into queue
@@ -554,11 +566,20 @@ int main(int argc, char *argv[])
 	struct startJobScheduler *launch = malloc(sizeof(struct startJobScheduler));
 	launch->queue = ready;
 	launch->socket = new_socket;
+	struct startCPUScheduler *cpuData = malloc(sizeof(struct startCPUScheduler));
+	cpuData->r = ready;
+	cpuData->d = done;
+	// Esta asignacion del algoritmo tiene que cambiarse por la eleccion del usuario
+	cpuData->algorithm = 0;
+	// Esta asignacion del quantum debe cambiarse por la eleccion del usuario
+	cpuData->quantum = 3;
 
-	pthread_t job;
+	pthread_t job, cpu;
 
 	pthread_create(&job, NULL, JOB_Scheduler, (void *)launch);
+	pthread_create(&cpu, NULL, CPU_Scheduler, (void *)cpuData);
 	pthread_join(job, NULL);
+	pthread_join(cpu, NULL);
 
 	// valread = read(new_socket, buffer, 2000);
 	// printf("%s\n",buffer);
