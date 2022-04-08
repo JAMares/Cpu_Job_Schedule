@@ -116,29 +116,32 @@ char* ConcatCharToCharArray(char *Str, char Chr)
     return StrResult;
 }
 
+char* numberToString(int number)
+{
+    char *string = (char*)malloc(sizeof(char));
+    sprintf(string, "%d", number);
+    return string;
+}
+
 void* sendProcessSocket(void *msg)
 {
     struct Message *my_msg = (struct Message*) msg;
-    
+    int valread;
     char buffer[2000] = {};
-    printf("%s\n", my_msg->message);
+    printf("Message: %s\n", my_msg->message);
+    printf("Socket cliente: %d\n", my_msg->socket);
     send(my_msg->socket, my_msg->message, strlen(my_msg->message), 0);
-    // int valread = read( my_msg->socket, buffer, 2000);
-    // if(valread == 0)
-    //     return 0;
-    // else  
-    //     return 1;
+    valread = read( my_msg->socket, buffer, 2000);
+    puts(buffer);
 }
 
 void sendProcess(int burst, int priority, int socket)
 {
     sleep(2);
-    char *msgOut = "";
-    char cBurst = burst + '0';
-    char cPriority = priority + '0';
-    msgOut = ConcatCharToCharArray(msgOut, cBurst);
+    char *msgOut =  numberToString(burst);
+    char *numString = numberToString(priority);
     msgOut = ConcatCharToCharArray(msgOut, ',');
-    msgOut = ConcatCharToCharArray(msgOut, cPriority);
+    msgOut = strcat(msgOut, numString);
 
     struct Message *msg = malloc(sizeof(struct Message));
     
@@ -194,6 +197,7 @@ int testReadRand(int socket)
     return 1;
 }
 
+
 int main(int argc , char *argv[])
 {
 	char buffer[2000] = {};
@@ -225,12 +229,9 @@ int main(int argc , char *argv[])
 
     // mainMenu(sock);
 
-    // send(sock , msg , strlen(msg) , 0 );
-    // printf("Mensaje enviado\n");
-    // valread = read( sock , buffer, 2000);
-    // printf("%s\n",buffer );
+    testReadRand(sock);
 
-    sendProcess(1, 2, sock);
+    
 
     return 0;
 	

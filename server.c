@@ -390,17 +390,20 @@ void JOB_Scheduler(struct Queue *r, int socket)
 	char limit[] = ",";
 	char *answer;
 	int *dataPCB;
-	int pID, valread = 0;
+	int pID = 1;
+	int valread = 0;
 	char sPID;
     pthread_t thrd;
 
-	int seguir = 1;
-	
-	while (seguir)
+	int read_size;
+
+	while ((read_size = recv(socket, buffer, 2000, 0)) > 0)
 	{
 		sPID = pID + '0';
-		valread = read(socket, buffer, 2000);
-		puts(buffer);
+		// printf("socket: %d\n", socket);
+		// printf("buffer: %s\n", buffer);
+
+		// printf("Pid: %d\n", pID);
 		dataPCB = splitChar(buffer, limit);
 
 		struct PCB *process = malloc(sizeof(struct PCB));
@@ -416,17 +419,14 @@ void JOB_Scheduler(struct Queue *r, int socket)
     	pthread_join(thrd, NULL);
 
 		answer = ConcatCharToCharArray(msg, sPID);
+		// puts(answer);
 		send(socket, answer, strlen(answer), 0);
 		pID++;
 		sleep(2);
-		printQueue(r);
 	}
+	printQueue(r);
 	
-	
-	valread = read(socket, buffer, 2000);
-	printf("%s\n", buffer);
-	send(socket, msg, strlen(msg), 0);
-	printf("Mensaje enviado\n");
+	printf("\nMensaje enviado\n");
 	
 }
 
