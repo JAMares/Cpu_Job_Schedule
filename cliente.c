@@ -106,6 +106,7 @@ void* mainMenu(int socket){
     }
 }
 
+// Concat char to string
 char* ConcatCharToCharArray(char *Str, char Chr)
 {
     int len = strlen( Str );
@@ -116,6 +117,7 @@ char* ConcatCharToCharArray(char *Str, char Chr)
     return StrResult;
 }
 
+// Convert int into String
 char* numberToString(int number)
 {
     char *string = (char*)malloc(sizeof(char));
@@ -123,18 +125,20 @@ char* numberToString(int number)
     return string;
 }
 
+// Send to server and wait reply
 void* sendProcessSocket(void *msg)
 {
     struct Message *my_msg = (struct Message*) msg;
     int valread;
     char buffer[2000] = {};
-    printf("Message: %s\n", my_msg->message);
-    printf("Socket cliente: %d\n", my_msg->socket);
+    printf("Message: %s\n", my_msg->message);//Solo para pruebas(ELIMINAR LUEGO)
+    printf("Socket cliente: %d\n", my_msg->socket);//Solo para pruebas(ELIMINAR LUEGO)
     send(my_msg->socket, my_msg->message, strlen(my_msg->message), 0);
     valread = read( my_msg->socket, buffer, 2000);
     puts(buffer);
 }
 
+// Make thread by send data to server
 void sendProcess(int burst, int priority, int socket)
 {
     sleep(2);
@@ -144,17 +148,16 @@ void sendProcess(int burst, int priority, int socket)
     msgOut = strcat(msgOut, numString);
 
     struct Message *msg = malloc(sizeof(struct Message));
-    
-
     msg->message = msgOut;
     msg->socket = socket;
     
-    
+    // Created thread and function call
     pthread_t thrd;
     pthread_create(&thrd, NULL, sendProcessSocket, (void *)msg);
     pthread_join(thrd, NULL);
 }
 
+// Make random data by socket to server
 void randProcess(int socket){
     
     srand(time(NULL));
@@ -186,6 +189,7 @@ int testReadRand(int socket)
     while (fscanf(reader, "%d %d", &burst, &priority) == 2)
     {
         time = rand() % (8 + 1 - 3) + 3;
+        // Send data by socket  to server
         sendProcess(burst, priority, socket);
         sleep(time);
 

@@ -155,22 +155,23 @@ struct Node *searchProcessById(struct Queue *q, int pId)
 	return NULL;
 }
 
-char* ConcatCharToCharArray(char *Str, char Chr)
+// Convert int into String
+char* numberToString(int number)
 {
-    int len = strlen( Str );
-    char *StrResult = malloc( len + 2 );
-    strcpy(StrResult, Str);
-    StrResult[len] = Chr;
-    StrResult[len+1] = '\0';
-    return StrResult;
+    char *string = (char*)malloc(sizeof(char));
+    sprintf(string, "%d", number);
+    return string;
 }
 
+// Split string into array by delimiter
 int* splitChar(char string[], char limit[])
 {
 	char* newString;
 	int *array = (int*)malloc(sizeof(int)*2);
 
+	// Split string by limit
 	newString = strtok(string, limit);
+	// Convert string into int
 	int i = strtol(newString, NULL, 10);
 	array[0] = i;
 	newString = strtok(NULL, limit);
@@ -180,6 +181,7 @@ int* splitChar(char string[], char limit[])
 	return array;
 }
 
+// Print time execute by process in console
 void printExecution(int timeExecution)
 {
 	int timer = 0;
@@ -193,13 +195,17 @@ void printExecution(int timeExecution)
 	printf(">\n");
 }
 
+// Algorithm by queue order
 void fifo(struct Queue *r, struct Queue *d)
 {
 	if (r->first != NULL)
 	{
+		// Find process by queue order
 		struct Node *initNode = r->first;
 		int burst = initNode->process.burst;
 		int timer = initNode->process.burst - initNode->process.timeExecute;
+		
+		// Print process by n time with sleep
 		printExecution(timer);
 		initNode->process.timeExecute += timer;
 		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
@@ -212,13 +218,17 @@ void fifo(struct Queue *r, struct Queue *d)
 	}
 }
 
+// Algorithm by lowest burst
 void sjf(struct Queue *r, struct Queue *d)
 {
 	if (r->first != NULL)
 	{
+		// Find process by lowest burst
 		struct Node *initNode = searchLowestBurstProcess(r);
 		int burst = initNode->process.burst;
 		int timer = initNode->process.burst - initNode->process.timeExecute;
+		
+		// Print process by n time with sleep
 		printExecution(timer);
 		initNode->process.timeExecute += timer;
 		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
@@ -231,13 +241,17 @@ void sjf(struct Queue *r, struct Queue *d)
 	}
 }
 
+// Algorithm by priority
 void hpf(struct Queue *r, struct Queue *d)
 {
 	if (r->first != NULL)
 	{
+		// Find process by priority
 		struct Node *initNode = searchHighestPriorityProcess(r);
 		int burst = initNode->process.burst;
 		int timer = initNode->process.burst - initNode->process.timeExecute;
+		
+		// Print process by n time with sleep
 		printExecution(timer);
 		initNode->process.timeExecute += timer;
 		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
@@ -250,15 +264,20 @@ void hpf(struct Queue *r, struct Queue *d)
 	}
 }
 
+// Algorithm appropiative with quantum
 void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 {
+	// Find process to execute
 	struct Node *initNode = searchProcessById(r, pId);
 	int time = initNode->process.burst - initNode->process.timeExecute;
+	// End process or execute by quantum
 	if (time > quantum)
 	{
 		printExecution(quantum);
 		printf("Se ha ejecutado el proceso #%d con un quantum de %d\n", initNode->process.pId, quantum);
+		// Update time execute
 		initNode->process.timeExecute += quantum;
+		// Determine next process
 		if (initNode->next == NULL)
 			pId = r->first->process.pId;
 		else
@@ -266,6 +285,7 @@ void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 	}
 	else
 	{
+		// Print process by n time with sleep
 		printExecution(time);
 		initNode->process.timeExecute += time;
 		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, initNode->process.burst);
@@ -375,7 +395,7 @@ void CPU_Scheduler(struct Queue *r, struct Queue *d, int algorithm, int quantum)
 	return;
 }
 
-
+// Insert received process into queue
 void* makeProcess(void *pcb)
 {
 	struct PCB *dataPCB = (struct PCB*) pcb;
@@ -383,8 +403,10 @@ void* makeProcess(void *pcb)
 	insertProcess(dataPCB->queue, processToInsert);
 }
 
+// Insert received process into CPU queue
 void JOB_Scheduler(struct Queue *r, int socket)
 {
+	// Vars to read from client socket and insert process
 	char buffer[2000] = {};
 	char *msg = "Se crea el proceso con el PID #";
 	char limit[] = ",";
@@ -397,13 +419,10 @@ void JOB_Scheduler(struct Queue *r, int socket)
 
 	int read_size;
 
+	// Cycle to continue reading from client socket
 	while ((read_size = recv(socket, buffer, 2000, 0)) > 0)
 	{
-		sPID = pID + '0';
-		// printf("socket: %d\n", socket);
-		// printf("buffer: %s\n", buffer);
-
-		// printf("Pid: %d\n", pID);
+		sPID = numberToString(pID) ;
 		dataPCB = splitChar(buffer, limit);
 
 		struct PCB *process = malloc(sizeof(struct PCB));
@@ -415,16 +434,15 @@ void JOB_Scheduler(struct Queue *r, int socket)
 		process->state = 0;
 		process->queue = r;
 
+		// Thread insert process into ready queue
 		pthread_create(&thrd, NULL, makeProcess, (void *)process);
     	pthread_join(thrd, NULL);
 
-		answer = ConcatCharToCharArray(msg, sPID);
-		// puts(answer);
+		// Server socket replies process id created
+		answer = strcat(msg, sPID);
 		send(socket, answer, strlen(answer), 0);
 		pID++;
-		sleep(2);
 	}
-	printQueue(r);
 	
 	printf("\nMensaje enviado\n");
 	
