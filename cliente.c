@@ -18,94 +18,6 @@ struct Message
     char* message;
 };
 
-
-void* autoCPU(){
-    int algorit;
-    int q;
-
-    while (algorit != 5){
-        printf("Seleccione el tipo de algoritmo: \n");
-        printf("1. FIFO \n");
-        printf("2. SJF \n");
-        printf("3. HPF \n");
-        printf("4. Round Robin \n");
-        printf("5. Si no desea continuar en el sistema \n");
-        scanf("%d",&algorit);
-        switch(algorit) {
-        case 1: printf("");
-            break;
-        case 2: printf("");
-            break;
-        case 3: exit(0);
-            break;
-        case 4: printf("Inserte el q");
-                scanf("%d",&q);
-            break;
-        case 5: exit(0);
-            break;
-        default: printf("Invalid choice!\n");
-            break;
-        }
-    }
-}
-
-void* manualCPU(){
-    char* archive;
-    int algorit;
-    int q;
-
-    while (algorit != 5){
-        printf("Digite el nombre del archivo que desea procesar \n");
-        scanf("%s",archive);
-        printf("Seleccione el tipo de algoritmo: \n");
-        printf("1. FIFO \n");
-        printf("2. SJF \n");
-        printf("3. HPF \n");
-        printf("4. Round Robin \n");
-        printf("5. Si no desea continuar en el sistema \n");
-        scanf("%d",&algorit);
-        switch(algorit) {
-        case 1: printf("");
-            break;
-        case 2: printf("");
-            break;
-        case 3: exit(0);
-            break;
-        case 4: printf("Inserte el q");
-                scanf("%d",&q);
-            break;
-        case 5: exit(0);
-            break;
-        default: printf("Invalid choice!\n");
-            break;
-        }
-    }
-}
-
-void* mainMenu(int socket){
-    int choice;
-
-    while (choice != 3){
-        printf("Main Menu");
-        printf("\n\t----------------------");
-        printf("\n 1. Automatic CPU");
-        printf("\n 2. Run manual CPU");
-        printf("\n 3. Exit");
-        printf("\n Enter your choice \n");
-        scanf("%d",&choice);
-        switch(choice) {
-        case 1: autoCPU();
-            break;
-        case 2: manualCPU();
-            break;
-        case 3: exit(0);
-            break;
-        default: printf("Invalid choice!\n");
-            break;
-        }
-    }
-}
-
 // Concat char to string
 char* ConcatCharToCharArray(char *Str, char Chr)
 {
@@ -158,11 +70,8 @@ void sendProcess(int burst, int priority, int socket)
 }
 
 // Make random data by socket to server
-void randProcess(int socket){
-    
-    srand(time(NULL));
-
-    int time = rand() % (8 + 1 - 3) + 3;
+void randProcess(int socket, int time){
+   
     int burst = rand() % (5 + 1 - 1) + 1;
     int priority = rand() % (5 + 1 - 1) + 1;
     sendProcess(burst, priority, socket);
@@ -170,14 +79,14 @@ void randProcess(int socket){
 }
 
 // Placeholder function for file reading and random gen tests
-int testReadRand(int socket)
+int testReadRand(int socket, char* txtName)
 {
 
     srand(time(NULL));
 
     int burst, priority, time;
 
-    FILE *reader = fopen("test.txt", "r");
+    FILE *reader = fopen(txtName, "r");
 
     // If file does not exist
     if (reader == NULL)
@@ -201,6 +110,44 @@ int testReadRand(int socket)
     return 1;
 }
 
+void* autoCPU(int socket){
+    int time;
+	
+	printf("Ingrese el tiempo de espera entre procesos \n");
+    scanf("%d",&time);
+	while (1) {
+		randProcess(socket, time);
+	}
+}
+
+void* manualCPU(int socked){
+    char archive[100];
+    int algorit;
+    int q;
+
+        printf("Digite el nombre del archivo que desea procesar \n");
+        scanf("%100s",archive);
+		testReadRand(socked, archive);
+}
+
+void* mainMenu(int socket){
+    int choice;
+
+    	printf("Main Menu");
+        printf("\n\t----------------------");
+        printf("\n 1. Automatic CPU");
+        printf("\n 2. Run manual CPU");
+        printf("\n Enter your choice \n");
+        scanf("%d",&choice);
+        switch(choice) {
+        case 1: autoCPU(socket);
+            break;
+        case 2: manualCPU(socket);
+            break;
+        default: printf("Invalid choice!\n");
+            break;
+    }
+}
 
 int main(int argc , char *argv[])
 {
@@ -231,14 +178,11 @@ int main(int argc , char *argv[])
         return -1;
     }
 
-    // mainMenu(sock);
-
-    testReadRand(sock);
-
-    
+    mainMenu(sock);
 
     return 0;
 	
 }
+
 
 
