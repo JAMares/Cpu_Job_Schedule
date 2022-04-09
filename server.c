@@ -327,7 +327,7 @@ void *CPU_Scheduler(void *data)
 	// Verifica el algoritmo y hace lo procesa
 	switch (algorithm)
 	{
-	case 0:
+	case 1:
 		while (1)
 		{
 			if (r->first != NULL)
@@ -342,7 +342,7 @@ void *CPU_Scheduler(void *data)
 			}
 		}
 		break;
-	case 1:
+	case 2:
 		while (1)
 		{
 			if (r->first != NULL)
@@ -357,7 +357,7 @@ void *CPU_Scheduler(void *data)
 			}
 		}
 		break;
-	case 2:
+	case 3:
 		while (1)
 		{
 			if (r->first != NULL)
@@ -372,7 +372,7 @@ void *CPU_Scheduler(void *data)
 			}
 		}
 		break;
-	case 3:
+	case 4:
 		while (1)
 		{
 			if (r->first != NULL)
@@ -465,8 +465,39 @@ void *JOB_Scheduler(void *launch_data)
 		send(socket, answer, strlen(answer), 0);
 		pID++;
 	}
+}
 
-	printf("\nMensaje enviado\n");
+int getAlgoritm(){
+    int algorit;
+
+        printf("Seleccione el tipo de algoritmo: \n");
+        printf("1. FIFO \n");
+        printf("2. SJF \n");
+        printf("3. HPF \n");
+        printf("4. Round Robin \n");
+        scanf("%d",&algorit);
+        switch(algorit) {
+        case 1: return 1;
+            break;
+        case 2: return 2;
+            break;
+        case 3: return 3;
+            break;
+        case 4: return 4;
+				//printf("Inserte el q");
+                //scanf("%d",&q);
+            break;
+        default: printf("Invalid choice!\n");
+            break;
+    }
+}
+				
+int quamt(){
+    int qm;
+
+        printf("Ingrese el tiempo de RR: \n");
+        scanf("%d",&qm);
+        return qm;
 }
 
 int main(int argc, char *argv[])
@@ -569,10 +600,11 @@ int main(int argc, char *argv[])
 	struct startCPUScheduler *cpuData = malloc(sizeof(struct startCPUScheduler));
 	cpuData->r = ready;
 	cpuData->d = done;
-	// Esta asignacion del algoritmo tiene que cambiarse por la eleccion del usuario
-	cpuData->algorithm = 0;
-	// Esta asignacion del quantum debe cambiarse por la eleccion del usuario
-	cpuData->quantum = 3;
+	cpuData->algorithm = getAlgoritm ();
+	
+	if(cpuData->algorithm == 4){
+		cpuData->quantum = quamt();
+	}
 
 	pthread_t job, cpu;
 
@@ -581,8 +613,6 @@ int main(int argc, char *argv[])
 	pthread_join(job, NULL);
 	pthread_join(cpu, NULL);
 
-	// valread = read(new_socket, buffer, 2000);
-	// printf("%s\n",buffer);
 
 	return 0;
 }
