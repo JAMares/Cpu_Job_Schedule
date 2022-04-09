@@ -218,7 +218,8 @@ void fifo(struct Queue *r, struct Queue *d)
 		struct Node *initNode = r->first;
 		int burst = initNode->process.burst;
 		int timer = initNode->process.burst - initNode->process.timeExecute;
-
+		printf("Procesando nodo %d\n", initNode->process.pId);
+		printNode(initNode);
 		// Print process by n time with sleep
 		printExecution(timer);
 		initNode->process.timeExecute += timer;
@@ -378,18 +379,30 @@ void *CPU_Scheduler(void *data)
 			if (r->first != NULL)
 			{
 				// BUSCA EL NODO ACTUAL
+				printf("Queue Actual\n");
+				printQueue(r);
 				tmp = searchProcessById(r, id);
-
+				if (tmp == NULL)
+				{
+					tmp = r->first;
+					id = tmp->process.pId;
+				}
+				printf("Nodo actual -------->\n");
+				printNode(tmp);
+				printf("Empieza el algoritmo\n");
 				// REALIZA EL ALGORITMO
 				RoundRobin(r, d, quantum, id);
 
+				printf("Termina el algoritmo y busca el siguiente\n");
 				if (tmp->next != NULL)
 				{
 					// SI HAY SIGUIENTE PREPARA SU PROCESAMIENTO
+					printf("Hay siguiente\n");
 					id = tmp->next->process.pId;
 				}
 				else
 				{
+					printf("No hay siguiente, va al primero otra vez\n");
 					// SI NO HAY SIGUIENTE PREPARA EL PRIMERO
 					id = r->first->process.pId;
 				}
@@ -397,6 +410,7 @@ void *CPU_Scheduler(void *data)
 				// SI EL PROCESO ANTERIOR TERMINO LO QUITA DEL READY QUEUE
 				if (tmp->process.timeExecute >= tmp->process.burst)
 				{
+					printf("Termina el proceso anterior\n");
 					finishProcess(r, d, tmp->process.pId);
 				}
 			}
@@ -570,7 +584,7 @@ int main(int argc, char *argv[])
 	cpuData->r = ready;
 	cpuData->d = done;
 	// Esta asignacion del algoritmo tiene que cambiarse por la eleccion del usuario
-	cpuData->algorithm = 0;
+	cpuData->algorithm = 3;
 	// Esta asignacion del quantum debe cambiarse por la eleccion del usuario
 	cpuData->quantum = 3;
 
