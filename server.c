@@ -379,30 +379,25 @@ void *CPU_Scheduler(void *data)
 			if (r->first != NULL)
 			{
 				// BUSCA EL NODO ACTUAL
-				printf("Queue Actual\n");
-				printQueue(r);
 				tmp = searchProcessById(r, id);
 				if (tmp == NULL)
 				{
 					tmp = r->first;
 					id = tmp->process.pId;
 				}
-				printf("Nodo actual -------->\n");
-				printNode(tmp);
-				printf("Empieza el algoritmo\n");
+
 				// REALIZA EL ALGORITMO
 				RoundRobin(r, d, quantum, id);
 
-				printf("Termina el algoritmo y busca el siguiente\n");
 				if (tmp->next != NULL)
 				{
 					// SI HAY SIGUIENTE PREPARA SU PROCESAMIENTO
-					printf("Hay siguiente\n");
+
 					id = tmp->next->process.pId;
 				}
 				else
 				{
-					printf("No hay siguiente, va al primero otra vez\n");
+
 					// SI NO HAY SIGUIENTE PREPARA EL PRIMERO
 					id = r->first->process.pId;
 				}
@@ -410,7 +405,7 @@ void *CPU_Scheduler(void *data)
 				// SI EL PROCESO ANTERIOR TERMINO LO QUITA DEL READY QUEUE
 				if (tmp->process.timeExecute >= tmp->process.burst)
 				{
-					printf("Termina el proceso anterior\n");
+
 					finishProcess(r, d, tmp->process.pId);
 				}
 			}
@@ -479,6 +474,7 @@ void *JOB_Scheduler(void *launch_data)
 		send(socket, answer, strlen(answer), 0);
 		pID++;
 	}
+	printf("Muere Job Scheduler");
 }
 
 int getAlgoritm()
