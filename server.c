@@ -65,6 +65,44 @@ struct Stop
 struct Stop stopServer;
 int getChar();
 
+int calculateTAT(struct PCB process)
+{
+	int tat = process.endTime - process.startTime;
+	return tat;
+}
+
+int calculateWT(struct PCB process)
+{
+	int wt = calculateTAT(process)-process.burst;
+	return wt;
+}
+
+float averageTAT(struct Queue *q)
+{
+	float sumAll = 0;
+	float average = 0;
+	struct Node *tmp = q->first;
+	while (tmp != NULL)
+	{
+		average += calculateTAT(tmp->process);
+		sumAll++;
+	}
+	return average/sumAll;
+}
+
+float averageWT(struct Queue *q)
+{
+	float sumAll = 0;
+	float average = 0;
+	struct Node *tmp = q->first;
+	while (tmp != NULL)
+	{
+		average += calculateWT(tmp->process);
+		sumAll++;
+	}
+	return average/sumAll;
+}
+
 void printNode(struct Node *n)
 {
 	while (getChar() != 1 & stopServer.stopC != 1)
