@@ -72,12 +72,18 @@ int getChar()
 	nflags = oflags;
 	nflags |= O_NONBLOCK;
 	fcntl(STDIN_FILENO, F_SETFL, nflags);
+	c = getchar();
 
-	if (c = getchar() == 'q')
+	if (c == 'p')
+	{
+		printf("Prueba");
+	}
+	if (c == 'q')
 	{
 		stopServer.stopC = 1;
-		return 1;
+		close(new_socket);
 	}
+
 	return 0;
 }
 
@@ -663,8 +669,10 @@ int main(int argc, char *argv[])
 
 	pthread_create(&job, NULL, JOB_Scheduler, (void *)launch);
 	pthread_create(&cpu, NULL, CPU_Scheduler, (void *)cpuData);
-	pthread_join(job, NULL);
-	pthread_join(cpu, NULL);
 
+	while (getChar() != 1 & stopServer.stopC != 1)
+	{
+		continue;
+	}
 	return 0;
 }
