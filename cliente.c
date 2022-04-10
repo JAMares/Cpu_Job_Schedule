@@ -84,6 +84,7 @@ char *numberToString(int number)
 // Send to server and wait reply
 void *sendProcessSocket(void *msg)
 {
+	sleep(2);
 	while (stopServer.stopC != 1 & getChar() != 1)
 	{
 		struct Message *my_msg = (struct Message *)msg;
@@ -103,7 +104,7 @@ void sendProcess(int burst, int priority, int socket)
 {
 	while (stopServer.stopC != 1 & getChar() != 1)
 	{
-		sleep(2);
+
 		char *msgOut = numberToString(burst);
 		char *numString = numberToString(priority);
 		msgOut = ConcatCharToCharArray(msgOut, ',');

@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-int socket_desc, new_socket, c, valread;
+int socket_desc, new_socket, c, valread, cpu_ocioso;
 struct sockaddr_in server, client;
 struct Queue *ready;
 struct Queue *done;
@@ -412,7 +412,7 @@ void *CPU_Scheduler(void *data)
 	// Tipo de algoritmo a utilizar (0->FIFO,1->SJF,2->HPF,3->RR)
 	int algorithm = init_data->algorithm;
 	// Tiempo en segundos de cpu ocioso
-	int cpu_ocioso = 0;
+	cpu_ocioso = 0;
 	// Primer nodo a checkear para RR, siempre el primero
 	int id = 1;
 	// Nodo temporal para el manejo de orden en RR
