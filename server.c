@@ -6,6 +6,9 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <netinet/in.h>
+#include <termios.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 int socket_desc, new_socket, c, valread;
 struct sockaddr_in server, client;
@@ -47,19 +50,58 @@ struct startCPUScheduler
 	int quantum;
 };
 
+struct Stop
+{
+	int stopC;
+};
+
+struct Stop stopServer;
+
+int getChar()
+{
+	int c;
+	int oc = '\0';
+	struct termios staryTermios, novyTermios;
+	int oflags, nflags;
+
+	novyTermios = staryTermios;
+	novyTermios.c_lflag &= ~(ICANON);
+
+	oflags = fcntl(STDIN_FILENO, F_GETFL);
+
+	nflags = oflags;
+	nflags |= O_NONBLOCK;
+	fcntl(STDIN_FILENO, F_SETFL, nflags);
+
+	if (c = getchar() == 'q')
+	{
+		stopServer.stopC = 1;
+		return 1;
+	}
+	return 0;
+}
+
 void printNode(struct Node *n)
 {
-	printf("\nProcess ID:%d\nBurst:%d\nPriority:%d\n", n->process.pId, n->process.burst, n->process.priority);
+	while (getChar() != 1 & stopServer.stopC != 1)
+	{
+		printf("\nProcess ID:%d\nBurst:%d\nPriority:%d\n", n->process.pId, n->process.burst, n->process.priority);
+		break;
+	}
 	return;
 }
 
 void printQueue(struct Queue *q)
 {
-	struct Node *tmp = q->first;
-	while (tmp != NULL)
+	while (stopServer.stopC != 1 & getChar() != 1)
 	{
-		printNode(tmp);
-		tmp = tmp->next;
+		struct Node *tmp = q->first;
+		while (tmp != NULL)
+		{
+			printNode(tmp);
+			tmp = tmp->next;
+		}
+		break;
 	}
 	return;
 }
@@ -67,20 +109,24 @@ void printQueue(struct Queue *q)
 // This process insert a new process into the last spot in the queue
 int insertProcess(struct Queue *q, struct PCB pcb)
 {
-	if (q->first == NULL)
+	while (stopServer.stopC != 1 & getChar() != 1)
 	{
-		q->first = (struct Node *)malloc(sizeof(struct Node));
-		q->first->next = NULL;
-		q->first->process = pcb;
-		q->last = q->first;
-	}
-	else
-	{
-		struct Node *tmp = (struct Node *)malloc(sizeof(struct Node));
-		tmp->next = NULL;
-		tmp->process = pcb;
-		q->last->next = tmp;
-		q->last = tmp;
+		if (q->first == NULL)
+		{
+			q->first = (struct Node *)malloc(sizeof(struct Node));
+			q->first->next = NULL;
+			q->first->process = pcb;
+			q->last = q->first;
+		}
+		else
+		{
+			struct Node *tmp = (struct Node *)malloc(sizeof(struct Node));
+			tmp->next = NULL;
+			tmp->process = pcb;
+			q->last->next = tmp;
+			q->last = tmp;
+		}
+		break;
 	}
 	return 0;
 }
@@ -88,40 +134,44 @@ int insertProcess(struct Queue *q, struct PCB pcb)
 // This functions transfers a process node from a ready queue to a done queue
 int finishProcess(struct Queue *r, struct Queue *d, int pId)
 {
-	struct Node *prev = NULL;
-	struct Node *tmp = r->first;
-	// Checks if the first node is the one we are looking for
-	if (tmp->process.pId == pId)
+	while (stopServer.stopC != 1 & getChar() != 1)
 	{
-		insertProcess(d, tmp->process);
-		r->first = tmp->next;
-		free(tmp);
-		return 0;
-	}
-	// Sets up search for the rest of the queue
-	prev = tmp;
-	tmp = tmp->next;
-	while (tmp != NULL)
-	{
-		// If tmp ID matches what we are looking for
+		struct Node *prev = NULL;
+		struct Node *tmp = r->first;
+		// Checks if the first node is the one we are looking for
 		if (tmp->process.pId == pId)
 		{
-			// Creates a new node in the other list with the same data as tmp
 			insertProcess(d, tmp->process);
-			// In case tmp is the last node of the queue
-			if (tmp->next == NULL)
-			{
-				// Sets the previous node as the last one
-				r->last = prev;
-			}
-			// Removes tmp from the ready queue and finishes
-			prev->next = tmp->next;
+			r->first = tmp->next;
 			free(tmp);
 			return 0;
 		}
-		// Setup for next iteration
+		// Sets up search for the rest of the queue
 		prev = tmp;
 		tmp = tmp->next;
+		while (tmp != NULL)
+		{
+			// If tmp ID matches what we are looking for
+			if (tmp->process.pId == pId)
+			{
+				// Creates a new node in the other list with the same data as tmp
+				insertProcess(d, tmp->process);
+				// In case tmp is the last node of the queue
+				if (tmp->next == NULL)
+				{
+					// Sets the previous node as the last one
+					r->last = prev;
+				}
+				// Removes tmp from the ready queue and finishes
+				prev->next = tmp->next;
+				free(tmp);
+				return 0;
+			}
+			// Setup for next iteration
+			prev = tmp;
+			tmp = tmp->next;
+		}
+		break;
 	}
 	return -1;
 }
@@ -176,7 +226,11 @@ struct Node *searchProcessById(struct Queue *q, int pId)
 char *numberToString(int number)
 {
 	char *string = (char *)malloc(sizeof(char));
-	sprintf(string, "%d", number);
+	while (stopServer.stopC != 1 & getChar() != 1)
+	{
+		sprintf(string, "%d", number);
+		break;
+	}
 	return string;
 }
 
@@ -186,14 +240,18 @@ int *splitChar(char string[], char limit[])
 	char *newString;
 	int *array = (int *)malloc(sizeof(int) * 2);
 
-	// Split string by limit
-	newString = strtok(string, limit);
-	// Convert string into int
-	int i = strtol(newString, NULL, 10);
-	array[0] = i;
-	newString = strtok(NULL, limit);
-	i = strtol(newString, NULL, 10);
-	array[1] = i;
+	while (stopServer.stopC != 1 & getChar() != 1)
+	{
+		// Split string by limit
+		newString = strtok(string, limit);
+		// Convert string into int
+		int i = strtol(newString, NULL, 10);
+		array[0] = i;
+		newString = strtok(NULL, limit);
+		i = strtol(newString, NULL, 10);
+		array[1] = i;
+		break;
+	}
 
 	return array;
 }
@@ -203,7 +261,7 @@ void printExecution(int timeExecution)
 {
 	int timer = 0;
 	printf("<");
-	while (timer < timeExecution)
+	while (timer < timeExecution & stopServer.stopC != 1 & getChar() != 1)
 	{
 		timer++;
 		printf("-------,");
@@ -215,97 +273,114 @@ void printExecution(int timeExecution)
 // Algorithm by queue order
 void fifo(struct Queue *r, struct Queue *d)
 {
-	if (r->first != NULL)
+	while (stopServer.stopC != 1 & getChar() != 1)
 	{
-		// Find process by queue order
-		struct Node *initNode = r->first;
-		int burst = initNode->process.burst;
-		int timer = initNode->process.burst - initNode->process.timeExecute;
-		printf("Procesando nodo %d\n", initNode->process.pId);
-		printNode(initNode);
-		// Print process by n time with sleep
-		printExecution(timer);
-		initNode->process.timeExecute += timer;
-		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
-		finishProcess(r, d, initNode->process.pId);
-		// fifo(r, d); NEXT CALL IS MANAGED BY CPU SCHEDULER
-	}
-	else
-	{
-		return;
+		if (r->first != NULL)
+		{
+			// Find process by queue order
+			struct Node *initNode = r->first;
+			int burst = initNode->process.burst;
+			int timer = initNode->process.burst - initNode->process.timeExecute;
+			printf("Procesando nodo %d\n", initNode->process.pId);
+			printNode(initNode);
+			// Print process by n time with sleep
+			printExecution(timer);
+			initNode->process.timeExecute += timer;
+			printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
+			finishProcess(r, d, initNode->process.pId);
+			return;
+			// fifo(r, d); NEXT CALL IS MANAGED BY CPU SCHEDULER
+		}
+		else
+		{
+			return;
+		}
 	}
 }
 
 // Algorithm by lowest burst
 void sjf(struct Queue *r, struct Queue *d)
 {
-	if (r->first != NULL)
+	while (stopServer.stopC != 1 & getChar() != 1)
 	{
-		// Find process by lowest burst
-		struct Node *initNode = searchLowestBurstProcess(r);
-		int burst = initNode->process.burst;
-		int timer = initNode->process.burst - initNode->process.timeExecute;
+		if (r->first != NULL)
+		{
+			// Find process by lowest burst
+			struct Node *initNode = searchLowestBurstProcess(r);
+			int burst = initNode->process.burst;
+			int timer = initNode->process.burst - initNode->process.timeExecute;
 
-		// Print process by n time with sleep
-		printExecution(timer);
-		initNode->process.timeExecute += timer;
-		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
-		finishProcess(r, d, initNode->process.pId);
-		// sjf(r, d); NEXT CALL IS MANAGED BY CPU SCHEDULER
-	}
-	else
-	{
-		return;
+			// Print process by n time with sleep
+			printExecution(timer);
+			initNode->process.timeExecute += timer;
+			printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
+			finishProcess(r, d, initNode->process.pId);
+			// sjf(r, d); NEXT CALL IS MANAGED BY CPU SCHEDULER
+			return;
+		}
+		else
+		{
+			return;
+		}
 	}
 }
 
 // Algorithm by priority
 void hpf(struct Queue *r, struct Queue *d)
 {
-	if (r->first != NULL)
+	while (stopServer.stopC != 1 & getChar() != 1)
 	{
-		// Find process by priority
-		struct Node *initNode = searchHighestPriorityProcess(r);
-		int burst = initNode->process.burst;
-		int timer = initNode->process.burst - initNode->process.timeExecute;
+		if (r->first != NULL)
+		{
+			// Find process by priority
+			struct Node *initNode = searchHighestPriorityProcess(r);
+			int burst = initNode->process.burst;
+			int timer = initNode->process.burst - initNode->process.timeExecute;
 
-		// Print process by n time with sleep
-		printExecution(timer);
-		initNode->process.timeExecute += timer;
-		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
-		finishProcess(r, d, initNode->process.pId);
-		// hpf(r, d); NEXT CALL IS MANAGED BY CPU SCHEDULER
-	}
-	else
-	{
-		return;
+			// Print process by n time with sleep
+			printExecution(timer);
+			initNode->process.timeExecute += timer;
+			printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
+			finishProcess(r, d, initNode->process.pId);
+			return;
+			// hpf(r, d); NEXT CALL IS MANAGED BY CPU SCHEDULER
+		}
+		else
+		{
+			return;
+		}
 	}
 }
 
 // Algorithm appropiative with quantum
 void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 {
-	// Find process to execute
-	struct Node *initNode = searchProcessById(r, pId);
-	int time = initNode->process.burst - initNode->process.timeExecute;
-	// End process or execute by quantum
-	if (time > quantum)
+	while (stopServer.stopC != 1 & getChar() != 1)
 	{
-		printExecution(quantum);
-		printf("Se ha ejecutado el proceso #%d con un quantum de %d\n", initNode->process.pId, quantum);
-		// Update time execute
-		initNode->process.timeExecute += quantum;
-	}
-	else
-	{
-		// Print process by n time with sleep
-		printExecution(time);
-		initNode->process.timeExecute += time;
-		printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, initNode->process.burst);
+		// Find process to execute
+		struct Node *initNode = searchProcessById(r, pId);
+		int time = initNode->process.burst - initNode->process.timeExecute;
+		// End process or execute by quantum
+		if (time > quantum & stopServer.stopC != 1 & getChar() != 1)
+		{
+			printExecution(quantum);
+			printf("Se ha ejecutado el proceso #%d con un quantum de %d\n", initNode->process.pId, quantum);
+			// Update time execute
+			initNode->process.timeExecute += quantum;
+			return;
+		}
+		else if (getChar() != 1 & stopServer.stopC != 1)
+		{
+			// Print process by n time with sleep
+			printExecution(time);
+			initNode->process.timeExecute += time;
+			printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, initNode->process.burst);
+			return;
 
-		// LA TERMINACION MANEJADA POR EL CPU SCHEDULER
-		// ESTO PARA QUE NO SE ENCUENTRE CON UN NULO CUANDO LO BUSQUE
-		// finishProcess(r, d, initNode->process.pId);
+			// LA TERMINACION MANEJADA POR EL CPU SCHEDULER
+			// ESTO PARA QUE NO SE ENCUENTRE CON UN NULO CUANDO LO BUSQUE
+			// finishProcess(r, d, initNode->process.pId);
+		}
 	}
 	// RoundRobin(r, d, quantum, pId); NEXT CALL IS MANAGED BY CPU SCHEDULER
 }
@@ -332,7 +407,7 @@ void *CPU_Scheduler(void *data)
 	switch (algorithm)
 	{
 	case 1:
-		while (1)
+		while (getChar() != 1 & stopServer.stopC != 1)
 		{
 			if (r->first != NULL)
 			{
@@ -347,7 +422,7 @@ void *CPU_Scheduler(void *data)
 		}
 		break;
 	case 2:
-		while (1)
+		while (getChar() != 1 & stopServer.stopC != 1)
 		{
 			if (r->first != NULL)
 			{
@@ -362,7 +437,7 @@ void *CPU_Scheduler(void *data)
 		}
 		break;
 	case 3:
-		while (1)
+		while (getChar() != 1 & stopServer.stopC != 1)
 		{
 			if (r->first != NULL)
 			{
@@ -377,7 +452,7 @@ void *CPU_Scheduler(void *data)
 		}
 		break;
 	case 4:
-		while (1)
+		while (getChar() != 1 & stopServer.stopC != 1)
 		{
 			if (r->first != NULL)
 			{
@@ -422,7 +497,7 @@ void *CPU_Scheduler(void *data)
 	default:
 		break;
 	}
-	printf("CPU finalizado");
+	// printf("CPU finalizado \n");
 }
 
 // Insert received process into queue
@@ -457,10 +532,12 @@ void *JOB_Scheduler(void *launch_data)
 	// Create socket
 	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_desc == -1)
-	{
-		printf("No es posible crear el socket");
-		return 1;
-	}
+		// Cycle to continue reading from client socket
+		while ((read_size = recv(socket, buffer, 2000, 0)) > 0 & getChar() != 1 & stopServer.stopC != 1)
+		{
+			printf("No es posible crear el socket");
+			return 1;
+		}
 
 	// Prepare the sockaddr_in structure
 	memset(&server, 0, sizeof(server));
@@ -513,6 +590,7 @@ void *JOB_Scheduler(void *launch_data)
 		printf("\nConexion del cliente finalizada, esperando nueva conexion...\n");
 	}
 	printf("\nJob Scheduler Finalizo\n");
+	// printf("Muere Job Scheduler\n");
 }
 
 int getAlgoritm()
@@ -558,6 +636,8 @@ int quamt()
 
 int main(int argc, char *argv[])
 {
+	stopServer.stopC = 0;
+
 	struct Queue *ready = (struct Queue *)malloc(sizeof(struct Queue));
 	struct Queue *done = (struct Queue *)malloc(sizeof(struct Queue));
 	// printf("queue done\n\n");
@@ -565,47 +645,6 @@ int main(int argc, char *argv[])
 	ready->last = NULL;
 	done->first = NULL;
 	done->last = NULL;
-	// struct PCB p1 = {.burst = 4, .pId = 0, .priority = 1, .state = 0, .timeExecute = 0};
-	// struct PCB p2 = {.burst = 7, .pId = 1, .priority = 5, .state = 0, .timeExecute = 0};
-	// struct PCB p3 = {.burst = 3, .pId = 2, .priority = 3, .state = 0, .timeExecute = 0};
-	// struct PCB p4 = {.burst = 5, .pId = 3, .priority = 3, .state = 0, .timeExecute = 0};
-	// struct PCB p5 = {.burst = 2, .pId = 4, .priority = 1, .state = 0, .timeExecute = 0};
-	// printf("init done\n\n");
-	// insertProcess(ready, p1);
-	// printf("process insertion 1\n");
-	// insertProcess(ready, p2);
-	// printf("process insertion 2\n");
-	// insertProcess(ready, p3);
-	// printf("process insertion 3\n");
-	// insertProcess(ready, p4);
-	// printf("process insertion 4\n");
-	// insertProcess(ready, p5);
-	// printf("process insertion 5\n\n");
-
-	// printf("Printing processes in ready queue:");
-	// printQueue(ready);
-
-	// printf("\nFinishing process 3\n\n");
-	// finishProcess(ready, done, 3);
-
-	// printf("Printing processes in done queue:");
-	// printQueue(done);
-
-	// printf("\nPrinting processes in modified ready queue:");
-	// printQueue(ready);
-
-	// printf("\nChecking for highest priority process in ready queue:");
-	// printNode(searchHighestPriorityProcess(ready));
-
-	// printf("\nChecking for lowest burst process in ready queue:");
-	// printNode(searchLowestBurstProcess(ready));
-	// printf("\nTests finished\n");
-
-	// Execution of algoritms
-	// fifo(ready, done);
-	// sjf(ready, done);
-	// hpf(ready, done);
-	// RoundRobin(ready, done, 2, 0);
 
 	struct startJobScheduler *launch = malloc(sizeof(struct startJobScheduler));
 	launch->queue = ready;
