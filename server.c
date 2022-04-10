@@ -7,6 +7,9 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 
+int socket_desc, new_socket, c, valread;
+struct sockaddr_in server, client;
+
 struct PCB
 {
 	int pId;
@@ -435,9 +438,9 @@ void *JOB_Scheduler(void *launch_data)
 {
 	// Vars to read from client socket and insert process
 	struct startJobScheduler *my_job_launch = (struct startJobScheduler *)launch_data;
-	int socket = my_job_launch->socket;
+	// int socket = my_job_launch->socket;
 	struct Queue *r = my_job_launch->queue;
-	char buffer[2000] = {};
+	char buffer1[2000] = {};
 	char msg[32] = "Se crea el proceso con el PID #";
 	char limit[] = ",";
 	char *answer;
@@ -449,32 +452,67 @@ void *JOB_Scheduler(void *launch_data)
 
 	int read_size;
 
-	// Cycle to continue reading from client socket
-	while ((read_size = recv(socket, buffer, 2000, 0)) > 0)
+	char buffer[2000] = {};
+
+	// Create socket
+	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
+	if (socket_desc == -1)
 	{
-		sPID = numberToString(pID);
-		dataPCB = splitChar(buffer, limit);
-
-		struct PCB *process = malloc(sizeof(struct PCB));
-
-		process->burst = dataPCB[0];
-		process->priority = dataPCB[1];
-		process->pId = pID;
-		process->timeExecute = 0;
-		process->state = 0;
-		process->queue = r;
-
-		// Thread insert process into ready queue
-		pthread_create(&thrd, NULL, makeProcess, (void *)process);
-		pthread_join(thrd, NULL);
-
-		// Server socket replies process id created
-		strcpy(msg, "Se crea el proceso con el PID #");
-		answer = strcat(msg, sPID);
-		send(socket, answer, strlen(answer), 0);
-		pID++;
+		printf("No es posible crear el socket");
+		return 1;
 	}
-	printf("Muere Job Scheduler");
+
+	// Prepare the sockaddr_in structure
+	memset(&server, 0, sizeof(server));
+	server.sin_family = AF_INET;
+	server.sin_addr.s_addr = INADDR_ANY;
+	server.sin_port = htons(8080);
+
+	// Bind
+	if (bind(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
+	{
+		printf("bind falla");
+		return 1;
+	}
+	puts("El bind se conecta con exito");
+
+	// Listen
+	listen(socket_desc, 3);
+
+	// Aceptar el socket
+	c = sizeof(struct sockaddr_in);
+	while (new_socket = accept(socket_desc, (struct sockaddr *)&client, (socklen_t *)&c))
+	{
+		puts("\nLa conexion se ha realizado con exito\n");
+
+		// Cycle to continue reading from client socket
+		while ((read_size = recv(new_socket, buffer1, 2000, 0)) > 0)
+		{
+			sPID = numberToString(pID);
+			dataPCB = splitChar(buffer1, limit);
+
+			struct PCB *process = malloc(sizeof(struct PCB));
+
+			process->burst = dataPCB[0];
+			process->priority = dataPCB[1];
+			process->pId = pID;
+			process->timeExecute = 0;
+			process->state = 0;
+			process->queue = r;
+
+			// Thread insert process into ready queue
+			pthread_create(&thrd, NULL, makeProcess, (void *)process);
+			pthread_join(thrd, NULL);
+
+			// Server socket replies process id created
+			strcpy(msg, "Se crea el proceso con el PID #");
+			answer = strcat(msg, sPID);
+			send(new_socket, answer, strlen(answer), 0);
+			pID++;
+		}
+		printf("\nConexion del cliente finalizada, esperando nueva conexion...\n");
+	}
+	printf("\nJob Scheduler Finalizo\n");
 }
 
 int getAlgoritm()
@@ -568,49 +606,6 @@ int main(int argc, char *argv[])
 	// sjf(ready, done);
 	// hpf(ready, done);
 	// RoundRobin(ready, done, 2, 0);
-
-	int socket_desc, new_socket, c, valread;
-	char buffer[2000] = {};
-
-	struct sockaddr_in server, client;
-
-	// Create socket
-	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
-	if (socket_desc == -1)
-	{
-		printf("No es posible crear el socket");
-		return 1;
-	}
-
-	// Prepare the sockaddr_in structure
-	memset(&server, 0, sizeof(server));
-	server.sin_family = AF_INET;
-	server.sin_addr.s_addr = INADDR_ANY;
-	server.sin_port = htons(8080);
-
-	// Bind
-	if (bind(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
-	{
-		printf("bind falla");
-		return 1;
-	}
-	puts("El bind se conecta con exito");
-
-	// Listen
-	listen(socket_desc, 3);
-
-	// Accept and incoming connection
-	puts("Esperando para nuevos clientes...");
-
-	// Aceptar el socket
-	c = sizeof(struct sockaddr_in);
-	new_socket = accept(socket_desc, (struct sockaddr *)&client, (socklen_t *)&c);
-	if (new_socket < 0)
-	{
-		printf("No se ha aceptado con exito");
-		return 1;
-	}
-	puts("La conexion se ha realizado con exito");
 
 	struct startJobScheduler *launch = malloc(sizeof(struct startJobScheduler));
 	launch->queue = ready;
