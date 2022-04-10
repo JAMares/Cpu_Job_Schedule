@@ -12,6 +12,8 @@
 
 int socket_desc, new_socket, c, valread;
 struct sockaddr_in server, client;
+struct Queue *ready;
+struct Queue *done;
 
 struct PCB
 {
@@ -56,36 +58,7 @@ struct Stop
 };
 
 struct Stop stopServer;
-
-int getChar()
-{
-	int c;
-	int oc = '\0';
-	struct termios staryTermios, novyTermios;
-	int oflags, nflags;
-
-	novyTermios = staryTermios;
-	novyTermios.c_lflag &= ~(ICANON);
-
-	oflags = fcntl(STDIN_FILENO, F_GETFL);
-
-	nflags = oflags;
-	nflags |= O_NONBLOCK;
-	fcntl(STDIN_FILENO, F_SETFL, nflags);
-	c = getchar();
-
-	if (c == 'p')
-	{
-		printf("Prueba");
-	}
-	if (c == 'q')
-	{
-		stopServer.stopC = 1;
-		close(new_socket);
-	}
-
-	return 0;
-}
+int getChar();
 
 void printNode(struct Node *n)
 {
@@ -110,6 +83,41 @@ void printQueue(struct Queue *q)
 		break;
 	}
 	return;
+}
+
+int getChar()
+{
+	int c;
+	int oc = '\0';
+	struct termios staryTermios, novyTermios;
+	int oflags, nflags;
+
+	novyTermios = staryTermios;
+	novyTermios.c_lflag &= ~(ICANON);
+
+	oflags = fcntl(STDIN_FILENO, F_GETFL);
+
+	nflags = oflags;
+	nflags |= O_NONBLOCK;
+	fcntl(STDIN_FILENO, F_SETFL, nflags);
+	c = getchar();
+
+	if (c == 'p')
+	{
+		printf("\n---------------COLA DE READY------------------\n");
+		printf("----------------------------------------------\n");
+		printQueue(ready);
+		printf("---------------FIN DE COLA DEL READY----------\n");
+		printf("----------------------------------------------\n");
+	}
+	if (c == 'q')
+	{
+		stopServer.stopC = 1;
+		close(new_socket);
+		return 1;
+	}
+
+	return 0;
 }
 
 // This process insert a new process into the last spot in the queue
@@ -644,8 +652,8 @@ int main(int argc, char *argv[])
 {
 	stopServer.stopC = 0;
 
-	struct Queue *ready = (struct Queue *)malloc(sizeof(struct Queue));
-	struct Queue *done = (struct Queue *)malloc(sizeof(struct Queue));
+	ready = (struct Queue *)malloc(sizeof(struct Queue));
+	done = (struct Queue *)malloc(sizeof(struct Queue));
 	// printf("queue done\n\n");
 	ready->first = NULL;
 	ready->last = NULL;
