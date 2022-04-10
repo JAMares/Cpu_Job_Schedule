@@ -13,6 +13,9 @@
 int socket_desc, new_socket, c, valread;
 struct sockaddr_in server, client;
 
+time_t beginExecution;
+time_t endExecution;
+
 struct PCB
 {
 	int pId;
@@ -20,6 +23,8 @@ struct PCB
 	int priority;
 	int state;
 	int timeExecute;
+	int startTime;
+	int endTime;
 	struct Queue *queue;
 };
 
@@ -138,10 +143,12 @@ int finishProcess(struct Queue *r, struct Queue *d, int pId)
 	{
 		struct Node *prev = NULL;
 		struct Node *tmp = r->first;
+		endExecution = time(NULL);
 		// Checks if the first node is the one we are looking for
 		if (tmp->process.pId == pId)
 		{
 			insertProcess(d, tmp->process);
+			tmp->process.endTime = (int)(endExecution - beginExecution);
 			r->first = tmp->next;
 			free(tmp);
 			return 0;
@@ -156,6 +163,7 @@ int finishProcess(struct Queue *r, struct Queue *d, int pId)
 			{
 				// Creates a new node in the other list with the same data as tmp
 				insertProcess(d, tmp->process);
+				tmp->process.endTime = (int)(endExecution - beginExecution);
 				// In case tmp is the last node of the queue
 				if (tmp->next == NULL)
 				{
@@ -504,7 +512,9 @@ void *CPU_Scheduler(void *data)
 void *makeProcess(void *pcb)
 {
 	struct PCB *dataPCB = (struct PCB *)pcb;
-	struct PCB processToInsert = {.burst = dataPCB->burst, .pId = dataPCB->pId, .priority = dataPCB->priority, .state = 0, .timeExecute = 0, .queue = NULL};
+	endExecution = time(NULL);
+	int initTime = (int) (endExecution - beginExecution);
+	struct PCB processToInsert = {.burst = dataPCB->burst, .pId = dataPCB->pId, .priority = dataPCB->priority, .state = 0, .timeExecute = 0, .queue = NULL, .startTime = initTime};
 	insertProcess(dataPCB->queue, processToInsert);
 }
 
@@ -590,6 +600,7 @@ void *JOB_Scheduler(void *launch_data)
 		printf("\nConexion del cliente finalizada, esperando nueva conexion...\n");
 	}
 	printf("\nJob Scheduler Finalizo\n");
+	printQueue(r);
 	// printf("Muere Job Scheduler\n");
 }
 
@@ -661,6 +672,8 @@ int main(int argc, char *argv[])
 
 	pthread_t job, cpu;
 
+
+	beginExecution = time(NULL);
 	pthread_create(&job, NULL, JOB_Scheduler, (void *)launch);
 	pthread_create(&cpu, NULL, CPU_Scheduler, (void *)cpuData);
 	pthread_join(job, NULL);
