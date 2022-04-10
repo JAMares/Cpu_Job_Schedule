@@ -10,8 +10,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-int socket_desc, new_socket, c, valread;
+int socket_desc, new_socket, c, valread, cpu_ocioso;
 struct sockaddr_in server, client;
+struct Queue *ready;
+struct Queue *done;
 
 time_t beginExecution;
 time_t endExecution;
@@ -61,30 +63,7 @@ struct Stop
 };
 
 struct Stop stopServer;
-
-int getChar()
-{
-	int c;
-	int oc = '\0';
-	struct termios staryTermios, novyTermios;
-	int oflags, nflags;
-
-	novyTermios = staryTermios;
-	novyTermios.c_lflag &= ~(ICANON);
-
-	oflags = fcntl(STDIN_FILENO, F_GETFL);
-
-	nflags = oflags;
-	nflags |= O_NONBLOCK;
-	fcntl(STDIN_FILENO, F_SETFL, nflags);
-
-	if (c = getchar() == 'q')
-	{
-		stopServer.stopC = 1;
-		return 1;
-	}
-	return 0;
-}
+int getChar();
 
 void printNode(struct Node *n)
 {
@@ -109,6 +88,41 @@ void printQueue(struct Queue *q)
 		break;
 	}
 	return;
+}
+
+int getChar()
+{
+	int c;
+	int oc = '\0';
+	struct termios staryTermios, novyTermios;
+	int oflags, nflags;
+
+	novyTermios = staryTermios;
+	novyTermios.c_lflag &= ~(ICANON);
+
+	oflags = fcntl(STDIN_FILENO, F_GETFL);
+
+	nflags = oflags;
+	nflags |= O_NONBLOCK;
+	fcntl(STDIN_FILENO, F_SETFL, nflags);
+	c = getchar();
+
+	if (c == 'p')
+	{
+		printf("\n---------------COLA DE READY------------------\n");
+		printf("----------------------------------------------\n");
+		printQueue(ready);
+		printf("---------------FIN DE COLA DEL READY----------\n");
+		printf("----------------------------------------------\n");
+	}
+	if (c == 'q')
+	{
+		stopServer.stopC = 1;
+		close(new_socket);
+		return 1;
+	}
+
+	return 0;
 }
 
 // This process insert a new process into the last spot in the queue
@@ -406,7 +420,7 @@ void *CPU_Scheduler(void *data)
 	// Tipo de algoritmo a utilizar (0->FIFO,1->SJF,2->HPF,3->RR)
 	int algorithm = init_data->algorithm;
 	// Tiempo en segundos de cpu ocioso
-	int cpu_ocioso = 0;
+	cpu_ocioso = 0;
 	// Primer nodo a checkear para RR, siempre el primero
 	int id = 1;
 	// Nodo temporal para el manejo de orden en RR
@@ -649,8 +663,8 @@ int main(int argc, char *argv[])
 {
 	stopServer.stopC = 0;
 
-	struct Queue *ready = (struct Queue *)malloc(sizeof(struct Queue));
-	struct Queue *done = (struct Queue *)malloc(sizeof(struct Queue));
+	ready = (struct Queue *)malloc(sizeof(struct Queue));
+	done = (struct Queue *)malloc(sizeof(struct Queue));
 	// printf("queue done\n\n");
 	ready->first = NULL;
 	ready->last = NULL;
@@ -676,8 +690,10 @@ int main(int argc, char *argv[])
 	beginExecution = time(NULL);
 	pthread_create(&job, NULL, JOB_Scheduler, (void *)launch);
 	pthread_create(&cpu, NULL, CPU_Scheduler, (void *)cpuData);
-	pthread_join(job, NULL);
-	pthread_join(cpu, NULL);
 
+	while (getChar() != 1 & stopServer.stopC != 1)
+	{
+		continue;
+	}
 	return 0;
 }
