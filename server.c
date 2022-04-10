@@ -68,39 +68,55 @@ int getChar();
 int calculateTAT(struct PCB process)
 {
 	int tat = process.endTime - process.startTime;
+	printf("Start time: %d\n", process.startTime);
+	printf("End time: %d\n", process.endTime);
+	printf("tat proceso %d: %d\n", process.pId, tat);
 	return tat;
 }
 
 int calculateWT(struct PCB process)
 {
-	int wt = calculateTAT(process)-process.burst;
+	int wt = calculateTAT(process) - process.burst;
+	printf("wt proceso %d: %d\n", process.pId, wt);
 	return wt;
+}
+
+int countQueue(struct Queue *q)
+{
+	struct Node *tmp = q->first;
+	int count = 0;
+	while (tmp != NULL)
+	{
+		tmp = tmp->next;
+		count++;
+	}
+	return count;
 }
 
 float averageTAT(struct Queue *q)
 {
-	float sumAll = 0;
+	float sumAll = countQueue(q);
 	float average = 0;
 	struct Node *tmp = q->first;
 	while (tmp != NULL)
 	{
 		average += calculateTAT(tmp->process);
-		sumAll++;
+		tmp = tmp->next;
 	}
-	return average/sumAll;
+	return average / sumAll;
 }
 
 float averageWT(struct Queue *q)
 {
-	float sumAll = 0;
+	float sumAll = countQueue(q);
 	float average = 0;
 	struct Node *tmp = q->first;
 	while (tmp != NULL)
 	{
 		average += calculateWT(tmp->process);
-		sumAll++;
+		tmp = tmp->next;
 	}
-	return average/sumAll;
+	return average / sumAll;
 }
 
 void printNode(struct Node *n)
@@ -565,7 +581,7 @@ void *makeProcess(void *pcb)
 {
 	struct PCB *dataPCB = (struct PCB *)pcb;
 	endExecution = time(NULL);
-	int initTime = (int) (endExecution - beginExecution);
+	int initTime = (int)(endExecution - beginExecution);
 	struct PCB processToInsert = {.burst = dataPCB->burst, .pId = dataPCB->pId, .priority = dataPCB->priority, .state = 0, .timeExecute = 0, .queue = NULL, .startTime = initTime};
 	insertProcess(dataPCB->queue, processToInsert);
 }
@@ -595,10 +611,10 @@ void *JOB_Scheduler(void *launch_data)
 	socket_desc = socket(AF_INET, SOCK_STREAM, 0);
 	if (socket_desc == -1)
 		// Cycle to continue reading from client socket
-		while ((read_size = recv(socket, buffer, 2000, 0)) > 0 & getChar() != 1 & stopServer.stopC != 1)
+		while ((read_size = recv(new_socket, buffer, 2000, 0)) > 0 & getChar() != 1 & stopServer.stopC != 1)
 		{
 			printf("No es posible crear el socket");
-			return 1;
+			return NULL;
 		}
 
 	// Prepare the sockaddr_in structure
@@ -611,7 +627,7 @@ void *JOB_Scheduler(void *launch_data)
 	if (bind(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
 	{
 		printf("bind falla");
-		return 1;
+		return NULL;
 	}
 	puts("El bind se conecta con exito");
 
@@ -731,5 +747,12 @@ int main(int argc, char *argv[])
 	{
 		continue;
 	}
+
+	float tat = averageTAT(done);
+	float wt = averageWT(done);
+
+	printf("TAT Average de Procesos: %f\n", tat);
+	printf("WT Average de Procesos: %f\n", wt);
+
 	return 0;
 }
