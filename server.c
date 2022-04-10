@@ -582,6 +582,7 @@ void *JOB_Scheduler(void *launch_data)
 
 	// Aceptar el socket
 	c = sizeof(struct sockaddr_in);
+	beginExecution = time(NULL);
 	while (new_socket = accept(socket_desc, (struct sockaddr *)&client, (socklen_t *)&c))
 	{
 		puts("\nLa conexion se ha realizado con exito\n");
@@ -614,7 +615,6 @@ void *JOB_Scheduler(void *launch_data)
 		printf("\nConexion del cliente finalizada, esperando nueva conexion...\n");
 	}
 	printf("\nJob Scheduler Finalizo\n");
-	printQueue(r);
 	// printf("Muere Job Scheduler\n");
 }
 
@@ -686,8 +686,6 @@ int main(int argc, char *argv[])
 
 	pthread_t job, cpu;
 
-
-	beginExecution = time(NULL);
 	pthread_create(&job, NULL, JOB_Scheduler, (void *)launch);
 	pthread_create(&cpu, NULL, CPU_Scheduler, (void *)cpuData);
 
