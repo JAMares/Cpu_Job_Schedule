@@ -143,7 +143,6 @@ void dataPlanning()
 	printf("\n\t------------FIN de resultados------------\n");
 }
 
-
 // Prinst nodes of any list
 void printNode(struct Node *n)
 {
@@ -199,10 +198,10 @@ int getChar()
 	// If key is p prints ready queue
 	if (pressedK == 'p')
 	{
-		printf("\n---------------READY------------------\n");
+		printf("\n-----------------READY----------------------\n");
 		printf("----------------------------------------------\n");
 		printQueue(ready);
-		printf("---------------READY END----------\n");
+		printf("-------------------READY END------------------\n");
 		printf("----------------------------------------------\n");
 	}
 
@@ -674,7 +673,7 @@ void *JOB_Scheduler(void *launch_data)
 	// Bind
 	if (bind(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
 	{
-		printf("Bind falls\n");
+		printf("Bind fails\n");
 		return NULL;
 	}
 	puts("El bind se conecta con exito");
@@ -686,7 +685,7 @@ void *JOB_Scheduler(void *launch_data)
 	c = sizeof(struct sockaddr_in);
 	while (new_socket = accept(socket_desc, (struct sockaddr *)&client, (socklen_t *)&c))
 	{
-		puts("\nConection is being strated\n");
+		puts("\Connection is being started\n");
 
 		// Cycle to continue reading from client socket
 		while ((read_size = recv(new_socket, buffer1, 2000, 0)) > 0)
@@ -756,7 +755,7 @@ int quamt()
 {
 	int qm;
 
-	printf("Wrile the RR toime: \n");
+	printf("Write the RR time: \n");
 	scanf("%d", &qm);
 	return qm;
 }
@@ -799,13 +798,13 @@ int main(int argc, char *argv[])
 	float tat = averageTAT(done);
 	float wt = averageWT(done);
 
-	printf("Cantida de procesos ejecutados: %d\n", countQueue(done));
-	printf("Cantida en segundos de CPU Ocioso : %d\n", cpu_ocioso);
+	printf("Cantidad de procesos ejecutados: %d\n", countQueue(done));
+	printf("Cantidad en segundos de CPU Ocioso : %d\n", cpu_ocioso);
 
 	dataPlanning();
 
-	printf("TAT Average de Procesos: %f\n", tat);
-	printf("WT Average de Procesos: %f\n", wt);
+	printf("TAT promedio de procesos: %f\n", tat);
+	printf("WT promedio de procesos: %f\n", wt);
 
 	return 0;
 }
