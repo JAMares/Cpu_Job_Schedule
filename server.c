@@ -27,7 +27,6 @@ struct PCB
 	int timeExecute;
 	int startTime;
 	int endTime;
-	struct Queue *queue;
 };
 
 struct Node
@@ -586,8 +585,8 @@ void *makeProcess(void *pcb)
 	struct PCB *dataPCB = (struct PCB *)pcb;
 	endExecution = time(NULL);
 	int initTime = (int)(endExecution - beginExecution);
-	struct PCB processToInsert = {.burst = dataPCB->burst, .pId = dataPCB->pId, .priority = dataPCB->priority, .state = 0, .timeExecute = 0, .queue = NULL, .startTime = initTime};
-	insertProcess(dataPCB->queue, processToInsert);
+	struct PCB processToInsert = {.burst = dataPCB->burst, .pId = dataPCB->pId, .priority = dataPCB->priority, .state = 0, .timeExecute = 0, .startTime = initTime};
+	insertProcess(ready, processToInsert);
 }
 
 // Insert received process into CPU queue
@@ -658,7 +657,6 @@ void *JOB_Scheduler(void *launch_data)
 			process->pId = pID;
 			process->timeExecute = 0;
 			process->state = 0;
-			process->queue = r;
 
 			// Thread insert process into ready queue
 			pthread_create(&thrd, NULL, makeProcess, (void *)process);
