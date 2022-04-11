@@ -642,7 +642,7 @@ void *JOB_Scheduler(void *launch_data)
 	// int socket = my_job_launch->socket;
 	struct Queue *r = my_job_launch->queue;
 	char buffer1[2000] = {};
-	char msg[32] = "Process has been created with PID #";
+	char msg[35] = "Process has been created with PID #";
 	char limit[] = ",";
 	char *answer;
 	int *dataPCB;

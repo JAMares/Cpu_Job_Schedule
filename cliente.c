@@ -150,7 +150,7 @@ void randProcess(int socket, int time)
 }
 
 // Placeholder function for file reading and random gen tests
-int testReadRand(int socket, char *txtName)
+int fileRead(int socket, char *txtName)
 {
 
 	while (stopServer.stopC != 1 & getChar() != 1)
@@ -192,21 +192,20 @@ void *autoCPU(int socket)
 		printf("Write waiting time between process: \n");
 		scanf("%d", &time);
 		randProcess(socket, time);
+		break;
 	}
 }
 
 //If CPU reads process from file
 void *manualCPU(int socked)
 {
-	while (stopServer.stopC != 1 & getChar() != 1){
-		char archive[100];
-		int algorit;
-		int q;
+	char archive[100];
+	int algorit;
+	int q;
 
-		printf("Write file name: \n");
-		scanf("%100s", archive);
-		testReadRand(socked, archive);
-	}
+	printf("Write file name: \n");
+	scanf("%100s", archive);
+	fileRead(socked, archive);
 }
 
 //main menu
