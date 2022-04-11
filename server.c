@@ -205,16 +205,16 @@ int insertProcess(struct Queue *q, struct PCB pcb)
 // This functions transfers a process node from a ready queue to a done queue
 int finishProcess(struct Queue *r, struct Queue *d, int pId)
 {
+	endExecution = time(NULL);
 	while (stopServer.stopC != 1 & getChar() != 1)
 	{
 		struct Node *prev = NULL;
 		struct Node *tmp = r->first;
-		endExecution = time(NULL);
 		// Checks if the first node is the one we are looking for
 		if (tmp->process.pId == pId)
 		{
+			tmp->process.endTime = (int)(endExecution - beginExecution) - 1;
 			insertProcess(d, tmp->process);
-			tmp->process.endTime = (int)(endExecution - beginExecution);
 			r->first = tmp->next;
 			free(tmp);
 			return 0;
@@ -228,8 +228,8 @@ int finishProcess(struct Queue *r, struct Queue *d, int pId)
 			if (tmp->process.pId == pId)
 			{
 				// Creates a new node in the other list with the same data as tmp
+				tmp->process.endTime = (int)(endExecution - beginExecution) - 1;
 				insertProcess(d, tmp->process);
-				tmp->process.endTime = (int)(endExecution - beginExecution);
 				// In case tmp is the last node of the queue
 				if (tmp->next == NULL)
 				{
@@ -582,6 +582,8 @@ void *CPU_Scheduler(void *data)
 void *makeProcess(void *pcb)
 {
 	struct PCB *dataPCB = (struct PCB *)pcb;
+	if(dataPCB->pId == 1)
+		beginExecution = time(NULL);
 	endExecution = time(NULL);
 	int initTime = (int)(endExecution - beginExecution);
 	struct PCB processToInsert = {.burst = dataPCB->burst, .pId = dataPCB->pId, .priority = dataPCB->priority, .timeExecute = 0, .startTime = initTime};
@@ -638,7 +640,6 @@ void *JOB_Scheduler(void *launch_data)
 
 	// Aceptar el socket
 	c = sizeof(struct sockaddr_in);
-	beginExecution = time(NULL);
 	while (new_socket = accept(socket_desc, (struct sockaddr *)&client, (socklen_t *)&c))
 	{
 		puts("\nLa conexion se ha realizado con exito\n");
@@ -655,7 +656,6 @@ void *JOB_Scheduler(void *launch_data)
 			process->priority = dataPCB[1];
 			process->pId = pID;
 			process->timeExecute = 0;
-			process->state = 0;
 
 			// Thread insert process into ready queue
 			pthread_create(&thrd, NULL, makeProcess, (void *)process);
