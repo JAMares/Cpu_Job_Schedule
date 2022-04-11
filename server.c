@@ -18,7 +18,7 @@ struct Queue *done;
 time_t beginExecution;
 time_t endExecution;
 
-//Process PCN
+// Process PCN
 struct PCB
 {
 	int pId;
@@ -29,28 +29,28 @@ struct PCB
 	int endTime;
 };
 
-//List nodes
+// List nodes
 struct Node
 {
 	struct Node *next;
 	struct PCB process;
 };
 
-//Queue structure
+// Queue structure
 struct Queue
 {
 	struct Node *first;
 	struct Node *last;
 };
 
-//Job Scheduler list structure
+// Job Scheduler list structure
 struct startJobScheduler
 {
 	struct Queue *queue;
 	int socket;
 };
 
-//CPU Scheduler list structure
+// CPU Scheduler list structure
 struct startCPUScheduler
 {
 	struct Queue *r;
@@ -59,7 +59,7 @@ struct startCPUScheduler
 	int quantum;
 };
 
-//Indicates functionality has stopped
+// Indicates functionality has stopped
 struct Stop
 {
 	int stopC;
@@ -68,7 +68,7 @@ struct Stop
 struct Stop stopServer;
 int getChar();
 
-//Calculates TAT for each process
+// Calculates TAT for each process
 int calculateTAT(struct PCB process)
 {
 	int tat = process.endTime - process.startTime;
@@ -78,7 +78,7 @@ int calculateTAT(struct PCB process)
 	return tat;
 }
 
-//Calculates WT for each process
+// Calculates WT for each process
 int calculateWT(struct PCB process)
 {
 	int wt = calculateTAT(process) - process.burst;
@@ -86,7 +86,7 @@ int calculateWT(struct PCB process)
 	return wt;
 }
 
-//Count each Queue
+// Count each Queue
 int countQueue(struct Queue *q)
 {
 	struct Node *tmp = q->first;
@@ -99,7 +99,7 @@ int countQueue(struct Queue *q)
 	return count;
 }
 
-//Calculates TAT average
+// Calculates TAT average
 float averageTAT(struct Queue *q)
 {
 	float sumAll = countQueue(q);
@@ -113,7 +113,7 @@ float averageTAT(struct Queue *q)
 	return average / sumAll;
 }
 
-//Calculates WT average
+// Calculates WT average
 float averageWT(struct Queue *q)
 {
 	float sumAll = countQueue(q);
@@ -127,7 +127,7 @@ float averageWT(struct Queue *q)
 	return average / sumAll;
 }
 
-//Prinst nodes of any list
+// Prinst nodes of any list
 void printNode(struct Node *n)
 {
 	while (getChar() != 1 & stopServer.stopC != 1)
@@ -138,7 +138,7 @@ void printNode(struct Node *n)
 	return;
 }
 
-//Prints lists
+// Prints lists
 void printQueue(struct Queue *q)
 {
 	while (stopServer.stopC != 1 & getChar() != 1)
@@ -154,33 +154,33 @@ void printQueue(struct Queue *q)
 	return;
 }
 
-//Reads keyboard
+// Reads keyboard
 int getChar()
 {
 	int pressedK;
-	//struct with terminal information
+	// struct with terminal information
 	struct termios staryTermios, novyTermios;
 	int actualF, futureF;
 
 	novyTermios = staryTermios;
-	//Search for IO signals
+	// Search for IO signals
 	novyTermios.c_lflag &= ~(ICANON);
 
-	//System call with flags
+	// System call with flags
 	actualF = fcntl(STDIN_FILENO, F_GETFL);
-	futureF= actualF;
-	
-	//Non-blocking function
+	futureF = actualF;
+
+	// Non-blocking function
 	futureF |= O_NONBLOCK;
-	
-	//System call with flags
+
+	// System call with flags
 	fcntl(STDIN_FILENO, F_SETFL, futureF);
-	
-	//If a keyboard is pressed
+
+	// If a keyboard is pressed
 	pressedK = getchar();
-	
-	//If key is p prints ready queue
-	if (pressedK  == 'p')
+
+	// If key is p prints ready queue
+	if (pressedK == 'p')
 	{
 		printf("\n---------------COLA DE READY------------------\n");
 		printf("----------------------------------------------\n");
@@ -188,8 +188,8 @@ int getChar()
 		printf("---------------FIN DE COLA DEL READY----------\n");
 		printf("----------------------------------------------\n");
 	}
-	
-	//If key is q exits
+
+	// If key is q exits
 	if (pressedK == 'q')
 	{
 		char *msg = "El servidor ha cesado operaciones\n";
@@ -476,46 +476,44 @@ void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 			initNode->process.timeExecute += time;
 			printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, initNode->process.burst);
 			return;
-
-			// LA TERMINACION MANEJADA POR EL CPU SCHEDULER
-			// ESTO PARA QUE NO SE ENCUENTRE CON UN NULO CUANDO LO BUSQUE
-			// finishProcess(r, d, initNode->process.pId);
 		}
 	}
-	// RoundRobin(r, d, quantum, pId); NEXT CALL IS MANAGED BY CPU SCHEDULER
 }
 
 void *CPU_Scheduler(void *data)
 {
-	// Inicializacion de los datos para el procesamiento
+	// Initializes data for procedures
 	struct startCPUScheduler *init_data = (struct startCPUScheduler *)data;
-	// Queue de ready
+	// Initialization of Ready queue
 	struct Queue *r = init_data->r;
-	// Queue de procesos terminados
+	// Initialization of Done queue
 	struct Queue *d = init_data->d;
-	// Quantum en caso de que se utilice para RR
+	// Quantum used for Round Robin
 	int quantum = init_data->quantum;
-	// Tipo de algoritmo a utilizar (0->FIFO,1->SJF,2->HPF,3->RR)
+	// Type of algorithm to use (0->FIFO,1->SJF,2->HPF,3->RR)
 	int algorithm = init_data->algorithm;
-	// Tiempo en segundos de cpu ocioso
+	// CPU Idle time counter
 	cpu_ocioso = 0;
-	// Primer nodo a checkear para RR, siempre el primero
+	// Sets up first node for Round Robin
 	int id = 1;
-	// Nodo temporal para el manejo de orden en RR
+	// Temp node setup for Round Robin
 	struct Node *tmp;
-	// Verifica el algoritmo y hace lo procesa
+
+	// Verify algorithm choice and run cicle
 	switch (algorithm)
 	{
 	case 1:
 		while (getChar() != 1 & stopServer.stopC != 1)
 		{
+			// Checks that there is a node in the Ready queue
 			if (r->first != NULL)
 			{
-				// REALIZA EL ALGORITMO FIFO
+				// Executes FIFO algorithm
 				fifo(r, d);
 			}
 			else
 			{
+				// Increases CPU Idle time counter and sleeps for one second
 				cpu_ocioso += 1;
 				sleep(1);
 			}
@@ -524,13 +522,15 @@ void *CPU_Scheduler(void *data)
 	case 2:
 		while (getChar() != 1 & stopServer.stopC != 1)
 		{
+			// Checks that there is a node in the Ready queue
 			if (r->first != NULL)
 			{
-				// REALIZA EL ALGORITMO SJF
+				// Executes SJF algorithm
 				sjf(r, d);
 			}
 			else
 			{
+				// Increases CPU Idle time counter and sleeps for one second
 				cpu_ocioso += 1;
 				sleep(1);
 			}
@@ -539,13 +539,15 @@ void *CPU_Scheduler(void *data)
 	case 3:
 		while (getChar() != 1 & stopServer.stopC != 1)
 		{
+			// Checks that there is a node in the Ready queue
 			if (r->first != NULL)
 			{
-				// REALIZA EL ALGORITMO HPF
+				// Executes HPF algorithm
 				hpf(r, d);
 			}
 			else
 			{
+				// Increases CPU Idle time counter and sleeps for one second
 				cpu_ocioso += 1;
 				sleep(1);
 			}
@@ -554,41 +556,45 @@ void *CPU_Scheduler(void *data)
 	case 4:
 		while (getChar() != 1 & stopServer.stopC != 1)
 		{
+			// Checks that there is a node in the Ready queue
 			if (r->first != NULL)
 			{
-				// BUSCA EL NODO ACTUAL
+				// Searches for node to execute with stored id value
 				tmp = searchProcessById(r, id);
+
+				// If the node no longers exists, set the node to first in Ready queue
 				if (tmp == NULL)
 				{
 					tmp = r->first;
 					id = tmp->process.pId;
 				}
 
-				// REALIZA EL ALGORITMO
+				// Execute Round Robin algorithm
 				RoundRobin(r, d, quantum, id);
 
+				// Check if there is a next node
 				if (tmp->next != NULL)
 				{
-					// SI HAY SIGUIENTE PREPARA SU PROCESAMIENTO
+					// If there is a next, change the stored id to its pId
 
 					id = tmp->next->process.pId;
 				}
 				else
 				{
 
-					// SI NO HAY SIGUIENTE PREPARA EL PRIMERO
+					// If there isn't a next, change the stored id to the first's node in the queue
 					id = r->first->process.pId;
 				}
 
-				// SI EL PROCESO ANTERIOR TERMINO LO QUITA DEL READY QUEUE
+				// If the executed process has already finished, transfer it to the done queue
 				if (tmp->process.timeExecute >= tmp->process.burst)
 				{
-
 					finishProcess(r, d, tmp->process.pId);
 				}
 			}
 			else
 			{
+				// Increases CPU Idle time counter and sleeps for one second
 				cpu_ocioso += 1;
 				sleep(1);
 			}
@@ -597,14 +603,13 @@ void *CPU_Scheduler(void *data)
 	default:
 		break;
 	}
-	// printf("CPU finalizado \n");
 }
 
 // Insert received process into queue
 void *makeProcess(void *pcb)
 {
 	struct PCB *dataPCB = (struct PCB *)pcb;
-	if(dataPCB->pId == 1)
+	if (dataPCB->pId == 1)
 		beginExecution = time(NULL);
 	endExecution = time(NULL);
 	int initTime = (int)(endExecution - beginExecution);
