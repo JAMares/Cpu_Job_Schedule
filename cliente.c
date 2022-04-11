@@ -188,11 +188,9 @@ int testReadRand(int socket, char *txtName)
 void *autoCPU(int socket)
 {
 	int time;
-
-	printf("Ingrese el tiempo de espera entre procesos \n");
-	scanf("%d", &time);
-	while (stopServer.stopC != 1 & getChar() != 1)
-	{
+	while (stopServer.stopC != 1 & getChar() != 1){
+		printf("Write waiting time between process: \n");
+		scanf("%d", &time);
 		randProcess(socket, time);
 	}
 }
@@ -200,13 +198,15 @@ void *autoCPU(int socket)
 //If CPU reads process from file
 void *manualCPU(int socked)
 {
-	char archive[100];
-	int algorit;
-	int q;
+	while (stopServer.stopC != 1 & getChar() != 1){
+		char archive[100];
+		int algorit;
+		int q;
 
-	printf("Write file name \n");
-	scanf("%100s", archive);
-	testReadRand(socked, archive);
+		printf("Write file name: \n");
+		scanf("%100s", archive);
+		testReadRand(socked, archive);
+	}
 }
 
 //main menu
@@ -218,6 +218,7 @@ void *mainMenu(int socket)
 	printf("\n\t----------------------");
 	printf("\n 1. Automatic CPU");
 	printf("\n 2. Run manual CPU");
+	printf("\n 3. Exit");
 	printf("\n Enter your choice \n");
 	scanf("%d", &choice);
 	switch (choice)
@@ -228,6 +229,10 @@ void *mainMenu(int socket)
 	case 2:
 		manualCPU(socket);
 		break;
+	case 5:
+		stopServer.stopC = 1;
+		close(sock);
+		exit(0);
 	default:
 		printf("Invalid choice!\n");
 		mainMenu(socket);
@@ -260,7 +265,7 @@ int main(int argc, char *argv[])
 
 	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 	{
-		printf("\nConnection Failed \n");
+		printf("\nConnection Failed\n");
 		return -1;
 	}
 
