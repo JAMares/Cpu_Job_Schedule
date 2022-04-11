@@ -357,7 +357,7 @@ void fifo(struct Queue *r, struct Queue *d)
 			struct Node *initNode = r->first;
 			int burst = initNode->process.burst;
 			int timer = initNode->process.burst - initNode->process.timeExecute;
-			printf("Procesando nodo %d\n", initNode->process.pId);
+			printf("Procesando Nodo %d:", initNode->process.pId);
 			printNode(initNode);
 			// Print process by n time with sleep
 			printExecution(timer);
@@ -385,7 +385,7 @@ void sjf(struct Queue *r, struct Queue *d)
 			struct Node *initNode = searchLowestBurstProcess(r);
 			int burst = initNode->process.burst;
 			int timer = initNode->process.burst - initNode->process.timeExecute;
-			printf("Procesando nodo %d\n", initNode->process.pId);
+			printf("Procesando Nodo %d:", initNode->process.pId);
 			printNode(initNode);
 			// Print process by n time with sleep
 			printExecution(timer);
@@ -413,7 +413,7 @@ void hpf(struct Queue *r, struct Queue *d)
 			struct Node *initNode = searchHighestPriorityProcess(r);
 			int burst = initNode->process.burst;
 			int timer = initNode->process.burst - initNode->process.timeExecute;
-			printf("Procesando nodo %d\n", initNode->process.pId);
+			printf("Procesando Nodo %d:", initNode->process.pId);
 			printNode(initNode);
 			// Print process by n time with sleep
 			printExecution(timer);
@@ -438,7 +438,7 @@ void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 		// Find process to execute
 		struct Node *initNode = searchProcessById(r, pId);
 		int time = initNode->process.burst - initNode->process.timeExecute;
-		printf("Procesando nodo %d\n", initNode->process.pId);
+		printf("Procesando Nodo %d:", initNode->process.pId);
 		printNode(initNode);
 		// End process or execute by quantum
 		if (time > quantum & stopServer.stopC != 1 & getChar() != 1)
