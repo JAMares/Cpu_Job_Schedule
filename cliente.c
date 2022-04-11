@@ -229,13 +229,14 @@ void *mainMenu(int socket)
 	case 2:
 		manualCPU(socket);
 		break;
-	case 5:
+	case 3:
 		stopServer.stopC = 1;
 		close(sock);
 		exit(0);
+		break;
 	default:
 		printf("Invalid choice!\n");
-		mainMenu(socket);
+		break;
 	}
 }
 

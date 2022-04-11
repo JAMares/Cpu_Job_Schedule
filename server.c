@@ -747,7 +747,6 @@ int getAlgoritm()
 		exit(0);
 	default:
 		printf("Invalid choice!\n");
-		getAlgoritm();
 	}
 }
 
