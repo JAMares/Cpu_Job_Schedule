@@ -169,7 +169,9 @@ int getChar()
 	}
 	if (c == 'q')
 	{
+		char *msg = "El servidor ha cesado operaciones\n";
 		stopServer.stopC = 1;
+		send(new_socket, msg, strlen(msg), 0);
 		close(new_socket);
 		return 1;
 	}
@@ -213,7 +215,7 @@ int finishProcess(struct Queue *r, struct Queue *d, int pId)
 		// Checks if the first node is the one we are looking for
 		if (tmp->process.pId == pId)
 		{
-			tmp->process.endTime = (int)(endExecution - beginExecution) - 1;
+			tmp->process.endTime = (int)(endExecution - beginExecution);
 			insertProcess(d, tmp->process);
 			r->first = tmp->next;
 			free(tmp);
@@ -228,7 +230,7 @@ int finishProcess(struct Queue *r, struct Queue *d, int pId)
 			if (tmp->process.pId == pId)
 			{
 				// Creates a new node in the other list with the same data as tmp
-				tmp->process.endTime = (int)(endExecution - beginExecution) - 1;
+				tmp->process.endTime = (int)(endExecution - beginExecution);
 				insertProcess(d, tmp->process);
 				// In case tmp is the last node of the queue
 				if (tmp->next == NULL)
