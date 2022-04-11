@@ -724,13 +724,9 @@ int getAlgoritm()
 		break;
 	case 4:
 		return 4;
-		// printf("Inserte el q");
-		// scanf("%d",&q);
 		break;
 	case 5:
-		char *msg = "El servidor ha cesado operaciones\n";
 		stopServer.stopC = 1;
-		send(new_socket, msg, strlen(msg), 0);
 		close(new_socket);
 		exit(0);
 	default:

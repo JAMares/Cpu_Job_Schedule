@@ -213,7 +213,6 @@ void *manualCPU(int socked)
 void *mainMenu(int socket)
 {
 	int choice;
-	int socket = socket;
 
 	printf("Main Menu");
 	printf("\n\t----------------------");
@@ -231,7 +230,7 @@ void *mainMenu(int socket)
 		break;
 	default:
 		printf("Invalid choice!\n");
-		mainMenu(int socket);
+		mainMenu(socket);
 	}
 }
 
