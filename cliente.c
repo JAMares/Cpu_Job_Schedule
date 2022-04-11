@@ -188,12 +188,13 @@ int fileRead(int socket, char *txtName)
 void *autoCPU(int socket)
 {
 	int time;
-	while (stopServer.stopC != 1 & getChar() != 1){
-		printf("Write waiting time between process: \n");
-		scanf("%d", &time);
+	printf("Write waiting time between process: \n");
+	scanf("%d", &time);
+	while(getChar() != 1 & stopServer.stopC != 1)
+	{
 		randProcess(socket, time);
-		break;
 	}
+	
 }
 
 //If CPU reads process from file
