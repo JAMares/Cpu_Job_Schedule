@@ -218,7 +218,7 @@ int getChar()
 	return 0;
 }
 
-// inserta procesos a una lista y crea el PCB
+// Inserts process into the queue
 int insertProcess(struct Queue *q, struct PCB pcb)
 {
 	while (stopServer.stopC != 1 & getChar() != 1)
