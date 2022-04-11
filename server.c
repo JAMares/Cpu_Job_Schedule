@@ -704,6 +704,7 @@ int getAlgoritm()
 	printf("2. SJF \n");
 	printf("3. HPF \n");
 	printf("4. Round Robin \n");
+	printf("5. Exit \n");
 	scanf("%d", &algorit);
 	switch (algorit)
 	{
@@ -721,6 +722,12 @@ int getAlgoritm()
 		// printf("Inserte el q");
 		// scanf("%d",&q);
 		break;
+	case 5:
+		char *msg = "El servidor ha cesado operaciones\n";
+		stopServer.stopC = 1;
+		send(new_socket, msg, strlen(msg), 0);
+		close(new_socket);
+		exit(0);
 	default:
 		printf("Invalid choice!\n");
 		getAlgoritm();
