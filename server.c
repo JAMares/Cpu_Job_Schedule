@@ -142,24 +142,33 @@ void printQueue(struct Queue *q)
 	return;
 }
 
+//Se encarga de constantemente escuchar al teclado, de manera en la que sabe cuanto se presiona una tecla
 int getChar()
 {
-	int c;
-	int oc = '\0';
+	int pressedK;
+	//struct con informacion de la terminal
 	struct termios staryTermios, novyTermios;
-	int oflags, nflags;
+	int actualF, futureF;
 
 	novyTermios = staryTermios;
+	//busca las seniales y caracteres
 	novyTermios.c_lflag &= ~(ICANON);
 
-	oflags = fcntl(STDIN_FILENO, F_GETFL);
-
-	nflags = oflags;
-	nflags |= O_NONBLOCK;
-	fcntl(STDIN_FILENO, F_SETFL, nflags);
-	c = getchar();
-
-	if (c == 'p')
+	//llamada al sistema con bandera del estado
+	actualF = fcntl(STDIN_FILENO, F_GETFL);
+	futureF= actualF;
+	
+	//evita el bloqueo
+	futureF |= O_NONBLOCK;
+	
+	//llamada al sistema que establece una bandera
+	fcntl(STDIN_FILENO, F_SETFL, futureF);
+	
+	//si se presiona la tecla
+	pressedK = getchar();
+	
+	//imprime ready
+	if (pressedK  == 'p')
 	{
 		printf("\n---------------COLA DE READY------------------\n");
 		printf("----------------------------------------------\n");
@@ -167,7 +176,9 @@ int getChar()
 		printf("---------------FIN DE COLA DEL READY----------\n");
 		printf("----------------------------------------------\n");
 	}
-	if (c == 'q')
+	
+	//salir
+	if (pressedK == 'q')
 	{
 		char *msg = "El servidor ha cesado operaciones\n";
 		stopServer.stopC = 1;
