@@ -15,12 +15,14 @@
 #define COLS 2
 #define PORT 8080
 
+//Message structure
 struct Message
 {
 	int socket;
 	char *message;
 };
 
+//Stop structure
 struct Stop
 {
 	int stopC;
@@ -29,34 +31,36 @@ struct Stop
 struct Stop stopServer;
 int sock = 0;
 
-//Se encarga de constantemente escuchar al teclado, de manera en la que sabe cuanto se presiona una tecla
+//Reads keyboard
 int getChar()
 {
 	int pressedK;
-	//struct con informacion de la terminal
+	//struct with terminal information
 	struct termios staryTermios, novyTermios;
 	int actualF, futureF;
 
 	novyTermios = staryTermios;
-	//busca las seniales y caracteres
+	//Search for IO signals
 	novyTermios.c_lflag &= ~(ICANON);
 
-	//llamada al sistema con bandera del estado
+	//System call with flags
 	actualF = fcntl(STDIN_FILENO, F_GETFL);
 	futureF= actualF;
 	
-	//evita el bloqueo
+	//Non-blocking function
 	futureF |= O_NONBLOCK;
 	
-	//llamada al sistema que establece una bandera
+	//System call with flags
 	fcntl(STDIN_FILENO, F_SETFL, futureF);
 	
-	//si se presiona la tecla
+	//If a keyboard is pressed
 	pressedK = getchar();
+	
+	//Client exits
 	if (pressedK == 'q')
 	{
 		stopServer.stopC = 1;
-		printf("El cliente ha terminado\n");
+		printf("The client has stopped\n");
 		close(sock);
 		return 1;
 	}
@@ -180,6 +184,7 @@ int testReadRand(int socket, char *txtName)
 	return 1;
 }
 
+//If CPU creates random process
 void *autoCPU(int socket)
 {
 	int time;
@@ -192,20 +197,23 @@ void *autoCPU(int socket)
 	}
 }
 
+//If CPU reads process from file
 void *manualCPU(int socked)
 {
 	char archive[100];
 	int algorit;
 	int q;
 
-	printf("Digite el nombre del archivo que desea procesar \n");
+	printf("Write file name \n");
 	scanf("%100s", archive);
 	testReadRand(socked, archive);
 }
 
+//main menu
 void *mainMenu(int socket)
 {
 	int choice;
+	int socket = socket;
 
 	printf("Main Menu");
 	printf("\n\t----------------------");
@@ -223,7 +231,7 @@ void *mainMenu(int socket)
 		break;
 	default:
 		printf("Invalid choice!\n");
-		break;
+		mainMenu(int socket);
 	}
 }
 
@@ -232,21 +240,22 @@ int main(int argc, char *argv[])
 	char buffer[2000] = {};
 	int valread;
 	struct sockaddr_in serv_addr;
-	char *msg = "Esto es lo enviado por el cliente";
+	char *msg = "Client sends";
+	
 	// SOCKET CREATION
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
-		printf("\n Socket creation error \n");
+		printf("\n Socket can not be create\n");
 		return -1;
 	}
 
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(PORT);
 
-	// Convert IPv4 and IPv6 addresses from text to binary form
+	//Convert adress IP
 	if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)
 	{
-		printf("\nInvalid address/ Address not supported \n");
+		printf("\nInvalid address\n");
 		return -1;
 	}
 
