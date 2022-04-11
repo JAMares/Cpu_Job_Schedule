@@ -199,17 +199,17 @@ int getChar()
 	// If key is p prints ready queue
 	if (pressedK == 'p')
 	{
-		printf("\n---------------COLA DE READY------------------\n");
+		printf("\n---------------READY------------------\n");
 		printf("----------------------------------------------\n");
 		printQueue(ready);
-		printf("---------------FIN DE COLA DEL READY----------\n");
+		printf("---------------READY END----------\n");
 		printf("----------------------------------------------\n");
 	}
 
 	// If key is q exits
 	if (pressedK == 'q')
 	{
-		char *msg = "El servidor ha cesado operaciones\n";
+		char *msg = "Server has done\n";
 		stopServer.stopC = 1;
 		send(new_socket, msg, strlen(msg), 0);
 		close(new_socket);
@@ -402,7 +402,7 @@ void fifo(struct Queue *r, struct Queue *d)
 			// Print process by n time with sleep
 			printExecution(timer);
 			initNode->process.timeExecute += timer;
-			printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
+			printf("Process #%d has ended with burst: %d\n", initNode->process.pId, burst);
 			finishProcess(r, d, initNode->process.pId);
 			return;
 		}
@@ -424,12 +424,12 @@ void sjf(struct Queue *r, struct Queue *d)
 			struct Node *initNode = searchLowestBurstProcess(r);
 			int burst = initNode->process.burst;
 			int timer = initNode->process.burst - initNode->process.timeExecute;
-			printf("Procesando Nodo %d:", initNode->process.pId);
+			printf("Processing Node %d:", initNode->process.pId);
 			printNode(initNode);
 			// Print process by n time with sleep
 			printExecution(timer);
 			initNode->process.timeExecute += timer;
-			printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
+			printf("Process #%d has ended with burst: %d\n", initNode->process.pId, burst);
 			finishProcess(r, d, initNode->process.pId);
 			return;
 		}
@@ -451,12 +451,12 @@ void hpf(struct Queue *r, struct Queue *d)
 			struct Node *initNode = searchHighestPriorityProcess(r);
 			int burst = initNode->process.burst;
 			int timer = initNode->process.burst - initNode->process.timeExecute;
-			printf("Procesando Nodo %d:", initNode->process.pId);
+			printf("Processing Node %d:", initNode->process.pId);
 			printNode(initNode);
 			// Print process by n time with sleep
 			printExecution(timer);
 			initNode->process.timeExecute += timer;
-			printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
+			printf("Process #%d has ended with burst: %d\n", initNode->process.pId, burst);
 			finishProcess(r, d, initNode->process.pId);
 			return;
 		}
@@ -475,13 +475,13 @@ void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 		// Find process to execute
 		struct Node *initNode = searchProcessById(r, pId);
 		int time = initNode->process.burst - initNode->process.timeExecute;
-		printf("Procesando Nodo %d:", initNode->process.pId);
+		printf("Processing Node %d:", initNode->process.pId);
 		printNode(initNode);
 		// End process or execute by quantum
 		if (time > quantum & stopServer.stopC != 1 & getChar() != 1)
 		{
 			printExecution(quantum);
-			printf("Se ha ejecutado el proceso #%d con un quantum de %d\n", initNode->process.pId, quantum);
+			printf("Process #%d has been executed with quantum of %d\n", initNode->process.pId, quantum);
 			// Update time execute
 			initNode->process.timeExecute += quantum;
 			return;
@@ -491,7 +491,7 @@ void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 			// Print process by n time with sleep
 			printExecution(time);
 			initNode->process.timeExecute += time;
-			printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, initNode->process.burst);
+			printf("Process #%d has ended with burst: %d\n", initNode->process.pId, initNode->process.burst);
 			return;
 		}
 	}
@@ -642,7 +642,7 @@ void *JOB_Scheduler(void *launch_data)
 	// int socket = my_job_launch->socket;
 	struct Queue *r = my_job_launch->queue;
 	char buffer1[2000] = {};
-	char msg[32] = "Se crea el proceso con el PID #";
+	char msg[32] = "Process has been created with PID #";
 	char limit[] = ",";
 	char *answer;
 	int *dataPCB;
@@ -661,7 +661,7 @@ void *JOB_Scheduler(void *launch_data)
 		// Cycle to continue reading from client socket
 		while ((read_size = recv(new_socket, buffer, 2000, 0)) > 0 & getChar() != 1 & stopServer.stopC != 1)
 		{
-			printf("No es posible crear el socket");
+			printf("Socket could not be created\n");
 			return NULL;
 		}
 
@@ -674,7 +674,7 @@ void *JOB_Scheduler(void *launch_data)
 	// Bind
 	if (bind(socket_desc, (struct sockaddr *)&server, sizeof(server)) < 0)
 	{
-		printf("bind falla");
+		printf("Bind falls\n");
 		return NULL;
 	}
 	puts("El bind se conecta con exito");
@@ -686,7 +686,7 @@ void *JOB_Scheduler(void *launch_data)
 	c = sizeof(struct sockaddr_in);
 	while (new_socket = accept(socket_desc, (struct sockaddr *)&client, (socklen_t *)&c))
 	{
-		puts("\nLa conexion se ha realizado con exito\n");
+		puts("\nConection is being strated\n");
 
 		// Cycle to continue reading from client socket
 		while ((read_size = recv(new_socket, buffer1, 2000, 0)) > 0)
@@ -711,7 +711,7 @@ void *JOB_Scheduler(void *launch_data)
 			send(new_socket, answer, strlen(answer), 0);
 			pID++;
 		}
-		printf("\nConexion del cliente finalizada, esperando nueva conexion...\n");
+		printf("\nClient conection has ended, waiting for new one...\n");
 	}
 	printf("\nJob Scheduler Finalizo\n");
 	// printf("Muere Job Scheduler\n");
@@ -721,7 +721,7 @@ int getAlgoritm()
 {
 	int algorit;
 
-	printf("Seleccione el tipo de algoritmo: \n");
+	printf("Select one algorithm: \n");
 	printf("1. FIFO \n");
 	printf("2. SJF \n");
 	printf("3. HPF \n");
@@ -756,7 +756,7 @@ int quamt()
 {
 	int qm;
 
-	printf("Ingrese el tiempo de RR: \n");
+	printf("Wrile the RR toime: \n");
 	scanf("%d", &qm);
 	return qm;
 }
