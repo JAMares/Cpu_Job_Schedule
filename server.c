@@ -72,9 +72,9 @@ int getChar();
 int calculateTAT(struct PCB process)
 {
 	int tat = process.endTime - process.startTime;
-	printf("Start time: %d\n", process.startTime);
-	printf("End time: %d\n", process.endTime);
-	printf("tat proceso %d: %d\n", process.pId, tat);
+	// printf("Start time: %d\n", process.startTime);
+	// printf("End time: %d\n", process.endTime);
+	// printf("tat proceso %d: %d\n", process.pId, tat);
 	return tat;
 }
 
@@ -82,7 +82,7 @@ int calculateTAT(struct PCB process)
 int calculateWT(struct PCB process)
 {
 	int wt = calculateTAT(process) - process.burst;
-	printf("wt proceso %d: %d\n", process.pId, wt);
+	// printf("wt proceso %d: %d\n", process.pId, wt);
 	return wt;
 }
 
@@ -126,6 +126,23 @@ float averageWT(struct Queue *q)
 	}
 	return average / sumAll;
 }
+
+void dataPlanning()
+{
+	struct Node *tmp = done->first;
+	printf("\n\t------------Tabla de resultados------------\n");
+	printf("\t\tID\t\tTAT\t\tWT\n");
+	while (tmp != NULL)
+	{
+		int id = tmp->process.pId;
+		struct PCB pcb = tmp->process;
+		printf("Process ID:\t%d\t\t%d\t\t%d\n", id, calculateTAT(pcb), calculateWT(pcb));
+		tmp = tmp->next;
+	}
+	// free(tmp);
+	printf("\n\t------------FIN de resultados------------\n");
+}
+
 
 // Prinst nodes of any list
 void printNode(struct Node *n)
@@ -380,7 +397,7 @@ void fifo(struct Queue *r, struct Queue *d)
 			struct Node *initNode = r->first;
 			int burst = initNode->process.burst;
 			int timer = initNode->process.burst - initNode->process.timeExecute;
-			printf("Procesando Nodo %d:", initNode->process.pId);
+			printf("\nProcesando Nodo %d:", initNode->process.pId);
 			printNode(initNode);
 			// Print process by n time with sleep
 			printExecution(timer);
@@ -781,6 +798,11 @@ int main(int argc, char *argv[])
 
 	float tat = averageTAT(done);
 	float wt = averageWT(done);
+
+	printf("Cantida de procesos ejecutados: %d\n", countQueue(done));
+	printf("Cantida en segundos de CPU Ocioso : %d\n", cpu_ocioso);
+
+	dataPlanning();
 
 	printf("TAT Average de Procesos: %f\n", tat);
 	printf("WT Average de Procesos: %f\n", wt);
