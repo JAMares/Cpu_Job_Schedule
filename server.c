@@ -23,7 +23,6 @@ struct PCB
 	int pId;
 	int burst;
 	int priority;
-	int state;
 	int timeExecute;
 	int startTime;
 	int endTime;
@@ -585,7 +584,7 @@ void *makeProcess(void *pcb)
 	struct PCB *dataPCB = (struct PCB *)pcb;
 	endExecution = time(NULL);
 	int initTime = (int)(endExecution - beginExecution);
-	struct PCB processToInsert = {.burst = dataPCB->burst, .pId = dataPCB->pId, .priority = dataPCB->priority, .state = 0, .timeExecute = 0, .startTime = initTime};
+	struct PCB processToInsert = {.burst = dataPCB->burst, .pId = dataPCB->pId, .priority = dataPCB->priority, .timeExecute = 0, .startTime = initTime};
 	insertProcess(ready, processToInsert);
 }
 
