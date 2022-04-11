@@ -679,7 +679,7 @@ void *JOB_Scheduler(void *launch_data)
 	puts("El bind se conecta con exito");
 
 	// Listen
-	listen(socket_desc, 3);
+	listen(socket_desc, 0);
 
 	// Aceptar el socket
 	c = sizeof(struct sockaddr_in);
@@ -691,6 +691,7 @@ void *JOB_Scheduler(void *launch_data)
 		while ((read_size = recv(new_socket, buffer1, 2000, 0)) > 0)
 		{
 			sPID = numberToString(pID);
+			printf("\n%s\n", buffer1);
 			dataPCB = splitChar(buffer1, limit);
 
 			struct PCB *process = malloc(sizeof(struct PCB));

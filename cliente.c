@@ -103,8 +103,8 @@ void *sendProcessSocket(void *msg)
 		struct Message *my_msg = (struct Message *)msg;
 		int valread;
 		char buffer[2000] = {};
-		// printf("Message: %s\n", my_msg->message);		// Solo para pruebas(ELIMINAR LUEGO)
-		// printf("Socket cliente: %d\n", my_msg->socket); // Solo para pruebas(ELIMINAR LUEGO)
+		printf("Message: %s\n", my_msg->message);		// Solo para pruebas(ELIMINAR LUEGO)
+		printf("Socket cliente: %d\n", my_msg->socket); // Solo para pruebas(ELIMINAR LUEGO)
 		send(my_msg->socket, my_msg->message, strlen(my_msg->message), 0);
 		valread = read(my_msg->socket, buffer, 2000);
 		puts(buffer);
