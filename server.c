@@ -18,6 +18,7 @@ struct Queue *done;
 time_t beginExecution;
 time_t endExecution;
 
+//Process PCN
 struct PCB
 {
 	int pId;
@@ -28,25 +29,28 @@ struct PCB
 	int endTime;
 };
 
+//List nodes
 struct Node
 {
 	struct Node *next;
 	struct PCB process;
 };
 
+//Queue structure
 struct Queue
 {
 	struct Node *first;
-
 	struct Node *last;
 };
 
+//Job Scheduler list structure
 struct startJobScheduler
 {
 	struct Queue *queue;
 	int socket;
 };
 
+//CPU Scheduler list structure
 struct startCPUScheduler
 {
 	struct Queue *r;
@@ -55,6 +59,7 @@ struct startCPUScheduler
 	int quantum;
 };
 
+//Indicates functionality has stopped
 struct Stop
 {
 	int stopC;
@@ -63,6 +68,7 @@ struct Stop
 struct Stop stopServer;
 int getChar();
 
+//Calculates TAT for each process
 int calculateTAT(struct PCB process)
 {
 	int tat = process.endTime - process.startTime;
@@ -72,6 +78,7 @@ int calculateTAT(struct PCB process)
 	return tat;
 }
 
+//Calculates WT for each process
 int calculateWT(struct PCB process)
 {
 	int wt = calculateTAT(process) - process.burst;
@@ -79,6 +86,7 @@ int calculateWT(struct PCB process)
 	return wt;
 }
 
+//Count each Queue
 int countQueue(struct Queue *q)
 {
 	struct Node *tmp = q->first;
@@ -91,6 +99,7 @@ int countQueue(struct Queue *q)
 	return count;
 }
 
+//Calculates TAT average
 float averageTAT(struct Queue *q)
 {
 	float sumAll = countQueue(q);
@@ -104,6 +113,7 @@ float averageTAT(struct Queue *q)
 	return average / sumAll;
 }
 
+//Calculates WT average
 float averageWT(struct Queue *q)
 {
 	float sumAll = countQueue(q);
@@ -117,6 +127,7 @@ float averageWT(struct Queue *q)
 	return average / sumAll;
 }
 
+//Prinst nodes of any list
 void printNode(struct Node *n)
 {
 	while (getChar() != 1 & stopServer.stopC != 1)
@@ -127,6 +138,7 @@ void printNode(struct Node *n)
 	return;
 }
 
+//Prints lists
 void printQueue(struct Queue *q)
 {
 	while (stopServer.stopC != 1 & getChar() != 1)
@@ -142,32 +154,32 @@ void printQueue(struct Queue *q)
 	return;
 }
 
-//Se encarga de constantemente escuchar al teclado, de manera en la que sabe cuanto se presiona una tecla
+//Reads keyboard
 int getChar()
 {
 	int pressedK;
-	//struct con informacion de la terminal
+	//struct with terminal information
 	struct termios staryTermios, novyTermios;
 	int actualF, futureF;
 
 	novyTermios = staryTermios;
-	//busca las seniales y caracteres
+	//Search for IO signals
 	novyTermios.c_lflag &= ~(ICANON);
 
-	//llamada al sistema con bandera del estado
+	//System call with flags
 	actualF = fcntl(STDIN_FILENO, F_GETFL);
 	futureF= actualF;
 	
-	//evita el bloqueo
+	//Non-blocking function
 	futureF |= O_NONBLOCK;
 	
-	//llamada al sistema que establece una bandera
+	//System call with flags
 	fcntl(STDIN_FILENO, F_SETFL, futureF);
 	
-	//si se presiona la tecla
+	//If a keyboard is pressed
 	pressedK = getchar();
 	
-	//imprime ready
+	//If key is p prints ready queue
 	if (pressedK  == 'p')
 	{
 		printf("\n---------------COLA DE READY------------------\n");
@@ -177,7 +189,7 @@ int getChar()
 		printf("----------------------------------------------\n");
 	}
 	
-	//salir
+	//If key is q exits
 	if (pressedK == 'q')
 	{
 		char *msg = "El servidor ha cesado operaciones\n";
@@ -190,7 +202,7 @@ int getChar()
 	return 0;
 }
 
-// This process insert a new process into the last spot in the queue
+// inserta procesos a una lista y crea el PCB
 int insertProcess(struct Queue *q, struct PCB pcb)
 {
 	while (stopServer.stopC != 1 & getChar() != 1)
@@ -376,7 +388,6 @@ void fifo(struct Queue *r, struct Queue *d)
 			printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
 			finishProcess(r, d, initNode->process.pId);
 			return;
-			// fifo(r, d); NEXT CALL IS MANAGED BY CPU SCHEDULER
 		}
 		else
 		{
@@ -403,7 +414,6 @@ void sjf(struct Queue *r, struct Queue *d)
 			initNode->process.timeExecute += timer;
 			printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
 			finishProcess(r, d, initNode->process.pId);
-			// sjf(r, d); NEXT CALL IS MANAGED BY CPU SCHEDULER
 			return;
 		}
 		else
@@ -432,7 +442,6 @@ void hpf(struct Queue *r, struct Queue *d)
 			printf("Se ha terminado el proceso #%d con un burst de %d\n", initNode->process.pId, burst);
 			finishProcess(r, d, initNode->process.pId);
 			return;
-			// hpf(r, d); NEXT CALL IS MANAGED BY CPU SCHEDULER
 		}
 		else
 		{
@@ -714,7 +723,7 @@ int getAlgoritm()
 		break;
 	default:
 		printf("Invalid choice!\n");
-		break;
+		getAlgoritm();
 	}
 }
 
