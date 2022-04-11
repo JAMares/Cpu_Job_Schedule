@@ -685,7 +685,7 @@ void *JOB_Scheduler(void *launch_data)
 	c = sizeof(struct sockaddr_in);
 	while (new_socket = accept(socket_desc, (struct sockaddr *)&client, (socklen_t *)&c))
 	{
-		puts("\Connection is being started\n");
+		puts("\nConnection is being started\n");
 
 		// Cycle to continue reading from client socket
 		while ((read_size = recv(new_socket, buffer1, 2000, 0)) > 0)
