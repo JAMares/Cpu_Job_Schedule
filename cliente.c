@@ -28,6 +28,23 @@ struct Stop
 	int stopC;
 };
 
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
+  
+struct tm tm;
+
+time_t sec1(){
+    time_t time2;
+    
+    // time after sleep in loop.
+    time(&time2);
+    tm = *localtime(&time2);
+    printf(" %d-%02d-%02d %02d:%02d:%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    
+    return time2;
+}
+
 struct Stop stopServer;
 int sock = 0;
 
@@ -98,14 +115,13 @@ char *numberToString(int number)
 void *sendProcessSocket(void *msg)
 {
 	sleep(2);
+	printf("At time is sent:");
+	sec1();
 	while (stopServer.stopC != 1 & getChar() != 1)
 	{
 		struct Message *my_msg = (struct Message *)msg;
 		int valread;
 		char buffer[2000] = {};
-		// printf("Message: %s\n", my_msg->message);		// Solo para pruebas(ELIMINAR LUEGO)
-		// printf("Socket cliente: %d\n", my_msg->socket); // Solo para pruebas(ELIMINAR LUEGO)
-		// printf("Length: %ld\n", strlen(my_msg->message));
 		char *sLength = numberToString(strlen(my_msg->message));
 		my_msg->message = ConcatCharToCharArray(my_msg->message, ',');
 		strcat(my_msg->message, sLength);
@@ -134,20 +150,25 @@ void sendProcess(int burst, int priority, int socket)
 		// Created thread and function call
 		pthread_t thrd;
 		pthread_create(&thrd, NULL, sendProcessSocket, (void *)msg);
-		pthread_join(thrd, NULL);
+		//pthread_join(thrd, NULL);
 		break;
 	}
 }
 
 // Make random data by socket to server
-void randProcess(int socket, int time)
+void randProcess(int socket, int time1, int time2, int burst1, int burst2)
 {
-
+	
 	while (stopServer.stopC != 1 & getChar() != 1)
 	{
-		int burst = rand() % (5 + 1 - 1) + 1;
+		printf("At time is created: ");
+		sec1();
+		int burst = rand() % (burst2 + 1 - burst1) + burst1;
 		int priority = rand() % (5 + 1 - 1) + 1;
+		printf("Burst, priority: %d %d\n", burst, priority);
 		sendProcess(burst, priority, socket);
+		int time = rand() % (time2 + 1 - time1) + time1;
+		printf("Time before other: %d\n", time);
 		sleep(time);
 		break;
 	}
@@ -191,12 +212,16 @@ int fileRead(int socket, char *txtName)
 //If CPU creates random process
 void *autoCPU(int socket)
 {
-	int time;
-	printf("Write waiting time between process: \n");
-	scanf("%d", &time);
+	int time1, time2, burst1, burst2;
+	printf("Write waiting time and burst range for random at creating process: \n");
+	scanf("%d %d %d %d", &time1, &time2, &burst1, &burst2);
+	int count = 1;
+	
 	while(getChar() != 1 & stopServer.stopC != 1)
 	{
-		randProcess(socket, time);
+		printf("\nProcess id: %d\n", count);
+		randProcess(socket, time1, time2, burst1, burst2);
+		count++;
 	}
 	
 }
