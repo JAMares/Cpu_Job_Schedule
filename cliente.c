@@ -266,6 +266,7 @@ void *mainMenu(int socket)
 		break;
 	case 3:
 		stopServer.stopC = 1;
+		printf("Client has closed the program\n");
 		close(sock);
 		exit(0);
 		break;
