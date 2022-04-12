@@ -26,7 +26,7 @@ time_t sec1(){
     // time after sleep in loop.
     time(&time2);
     tm = *localtime(&time2);
-    printf(" %d-%02d-%02d %02d:%02d:%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    printf(" %02d:%02d:%02d\n", tm.tm_hour, tm.tm_min, tm.tm_sec);
     
     return time2;
 }
@@ -143,7 +143,7 @@ float averageWT(struct Queue *q)
 void dataPlanning()
 {
 	struct Node *tmp = done->first;
-	printf("\n\t------------Tabla de resultados------------\n");
+	printf("\n\t------------Results table------------\n");
 	printf("\t\tID\t\tTAT\t\tWT\n");
 	while (tmp != NULL)
 	{
@@ -153,7 +153,7 @@ void dataPlanning()
 		tmp = tmp->next;
 	}
 	// free(tmp);
-	printf("\n\t------------FIN de resultados------------\n");
+	printf("\n\t------------End of table-------------\n\n");
 }
 
 // Prinst nodes of any list
@@ -211,17 +211,17 @@ int getChar()
 	// If key is p prints ready queue
 	if (pressedK == 'p')
 	{
-		printf("\n-----------------READY----------------------\n");
+		printf("\n-----------------READY STARTS---------------\n");
 		printf("----------------------------------------------\n");
 		printQueue(ready);
-		printf("-------------------READY END------------------\n");
+		printf("-------------------READY ENDS-----------------\n");
 		printf("----------------------------------------------\n");
 	}
 
 	// If key is q exits
 	if (pressedK == 'q')
 	{
-		char *msg = "Server has done\n";
+		char *msg = "\nServer has done\n";
 		send(new_socket, msg, strlen(msg), 0);
 		close(new_socket);
 		return 1;
@@ -596,7 +596,7 @@ void *CPU_Scheduler(void *data)
 					tmp = r->first;
 					id = tmp->process.pId;
 				}
-
+				
 				// Execute Round Robin algorithm
 				RoundRobin(r, d, quantum, id);
 
@@ -702,32 +702,34 @@ void *JOB_Scheduler(void *launch_data)
 		// Cycle to continue reading from client socket
 		while ((read_size = recv(new_socket, buffer1, 2000, 0)) > 0)
 		{
-			printf("Process income: ");
-			sec1();
+			//printf("New process at: ");
+			//sec1();
 			sPID = numberToString(pID);
 			dataPCB = splitChar(buffer1, limit);
-			printf("Process ID: %d", pID);
 			struct PCB *process = malloc(sizeof(struct PCB));
 
 			process->burst = dataPCB[0];
 			process->priority = dataPCB[1];
 			process->pId = pID;
 			process->timeExecute = 0;
+			//printf("Burst: %d\n", dataPCB[0]);
+			//printf("Priority: %d\n", dataPCB[1]);
+			//printf("Process ID: %d\n\n", pID);
 
 			// Thread insert process into ready queue
 			pthread_create(&thrd, NULL, makeProcess, (void *)process);
 			pthread_join(thrd, NULL);
 
 			// Server socket replies process id created
-			strcpy(msg, "Created process with PID #");
+			strcpy(msg, "\nCreated process with PID #");
 			answer = strcat(msg, sPID);
 			send(new_socket, answer, strlen(answer), 0);
 			pID++;
 			strcpy(buffer1, "");
 		}
-		printf("\nClient conection has ended, waiting for new one...\n");
+		//printf("\nClient conection has ended, waiting for new one...\n");
 	}
-	printf("\nJob Scheduler Finalizo\n");
+	printf("\nJob Scheduler has done\n");
 	// printf("Muere Job Scheduler\n");
 }
 
@@ -813,13 +815,16 @@ int main(int argc, char *argv[])
 	float tat = averageTAT(done);
 	float wt = averageWT(done);
 
-	printf("Cantidad de procesos ejecutados: %d\n", countQueue(done));
-	printf("Cantidad en segundos de CPU Ocioso : %d\n", cpu_ocioso);
+	printf("\nNumber of executed processes %d\n", countQueue(done));
+	printf("Amount in seconds of CPU Idle: %d\n", cpu_ocioso);
 
 	dataPlanning();
 
-	printf("TAT promedio de procesos: %f\n", tat);
-	printf("WT promedio de procesos: %f\n", wt);
+	printf("\nTAT average of process: %f\n", tat);
+	printf("WT average of process: %f\n", wt);
+	
+	printf("\nServer has done\n");
 
 	return 0;
 }
+
