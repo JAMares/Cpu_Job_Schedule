@@ -85,9 +85,7 @@ int getChar();
 int calculateTAT(struct PCB process)
 {
 	int tat = process.endTime - process.startTime;
-	// printf("Start time: %d\n", process.startTime);
-	// printf("End time: %d\n", process.endTime);
-	// printf("tat proceso %d: %d\n", process.pId, tat);
+	 //printf("tat proceso %d: %d\n", process.pId, tat);
 	return tat;
 }
 
@@ -95,7 +93,10 @@ int calculateTAT(struct PCB process)
 int calculateWT(struct PCB process)
 {
 	int wt = calculateTAT(process) - process.burst;
-	// printf("wt proceso %d: %d\n", process.pId, wt);
+	 //printf("Start time: %d\n", process.startTime);
+	 //printf("End time: %d\n", process.endTime);
+	 //printf("Burst: %d\n", process.burst);
+	 //printf("wt proceso %d: %d\n", process.pId, wt);
 	return wt;
 }
 
