@@ -363,6 +363,7 @@ int *splitChar(char string[], char limit[])
 		int i = strtol(newString, NULL, 10);
 		array[0] = i;
 		newString = strtok(NULL, limit);
+		printf("\nstring Strtok: %s\n", newString);
 		i = strtol(newString, NULL, 10);
 		array[1] = i;
 		break;
@@ -691,7 +692,8 @@ void *JOB_Scheduler(void *launch_data)
 		while ((read_size = recv(new_socket, buffer1, 2000, 0)) > 0)
 		{
 			sPID = numberToString(pID);
-			printf("\n%s\n", buffer1);
+			// printf("\nSocket: %d\n", new_socket);
+			// printf("\nLlego: %s\n", buffer1);
 			dataPCB = splitChar(buffer1, limit);
 
 			struct PCB *process = malloc(sizeof(struct PCB));
@@ -710,6 +712,7 @@ void *JOB_Scheduler(void *launch_data)
 			answer = strcat(msg, sPID);
 			send(new_socket, answer, strlen(answer), 0);
 			pID++;
+			strcpy(buffer1, "");
 		}
 		printf("\nClient conection has ended, waiting for new one...\n");
 	}

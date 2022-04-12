@@ -105,6 +105,10 @@ void *sendProcessSocket(void *msg)
 		char buffer[2000] = {};
 		printf("Message: %s\n", my_msg->message);		// Solo para pruebas(ELIMINAR LUEGO)
 		printf("Socket cliente: %d\n", my_msg->socket); // Solo para pruebas(ELIMINAR LUEGO)
+		printf("Length: %ld\n", strlen(my_msg->message));
+		char *sLength = numberToString(strlen(my_msg->message));
+		my_msg->message = ConcatCharToCharArray(my_msg->message, ',');
+		strcat(my_msg->message, sLength);
 		send(my_msg->socket, my_msg->message, strlen(my_msg->message), 0);
 		valread = read(my_msg->socket, buffer, 2000);
 		puts(buffer);
