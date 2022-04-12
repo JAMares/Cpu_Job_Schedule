@@ -209,7 +209,6 @@ int getChar()
 	if (pressedK == 'q')
 	{
 		char *msg = "Server has done\n";
-		stopServer.stopC = 1;
 		send(new_socket, msg, strlen(msg), 0);
 		close(new_socket);
 		return 1;
@@ -676,7 +675,7 @@ void *JOB_Scheduler(void *launch_data)
 		printf("Bind fails\n");
 		return NULL;
 	}
-	puts("El bind se conecta con exito");
+	puts("Bind is conected\n\nWaiting for clients...\n");
 
 	// Listen
 	listen(socket_desc, 0);
@@ -705,7 +704,7 @@ void *JOB_Scheduler(void *launch_data)
 			pthread_join(thrd, NULL);
 
 			// Server socket replies process id created
-			strcpy(msg, "Se crea el proceso con el PID #");
+			strcpy(msg, "Created process with PID #");
 			answer = strcat(msg, sPID);
 			send(new_socket, answer, strlen(answer), 0);
 			pID++;
@@ -727,6 +726,7 @@ int getAlgoritm()
 	printf("3. HPF \n");
 	printf("4. Round Robin \n");
 	printf("5. Exit \n");
+	printf("Enter your choice \n");
 	scanf("%d", &algorit);
 	switch (algorit)
 	{
