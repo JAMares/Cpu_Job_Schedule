@@ -156,18 +156,18 @@ void sendProcess(int burst, int priority, int socket)
 }
 
 // Make random data by socket to server
-void randProcess(int socket, int time1, int time2, int burst1, int burst2)
+void randProcess(int socket, int minTime, int maxTime, int minBurst, int maxBurst)
 {
 	
 	while (stopServer.stopC != 1 & getChar() != 1)
 	{
 		printf("At time is created: ");
 		sec1();
-		int burst = rand() % (burst2 + 1 - burst1) + burst1;
+		int burst = rand() % (maxBurst + 1 - minBurst) + minBurst;
 		int priority = rand() % (5 + 1 - 1) + 1;
 		printf("Burst, priority: %d %d\n", burst, priority);
 		sendProcess(burst, priority, socket);
-		int time = rand() % (time2 + 1 - time1) + time1;
+		int time = rand() % (maxTime + 1 - minTime) + minTime;
 		printf("Time before other: %d\n", time);
 		sleep(time);
 		break;

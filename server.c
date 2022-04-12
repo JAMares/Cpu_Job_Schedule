@@ -18,6 +18,19 @@ struct Queue *done;
 time_t beginExecution;
 time_t endExecution;
 
+struct tm tm;
+
+time_t sec1(){
+    time_t time2;
+    
+    // time after sleep in loop.
+    time(&time2);
+    tm = *localtime(&time2);
+    printf(" %d-%02d-%02d %02d:%02d:%02d\n", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+    
+    return time2;
+}
+
 // Process PCN
 struct PCB
 {
@@ -689,9 +702,11 @@ void *JOB_Scheduler(void *launch_data)
 		// Cycle to continue reading from client socket
 		while ((read_size = recv(new_socket, buffer1, 2000, 0)) > 0)
 		{
+			printf("Process income: ");
+			sec1();
 			sPID = numberToString(pID);
 			dataPCB = splitChar(buffer1, limit);
-
+			printf("Process ID: %d", pID);
 			struct PCB *process = malloc(sizeof(struct PCB));
 
 			process->burst = dataPCB[0];
