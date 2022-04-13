@@ -3,7 +3,6 @@
 #include <arpa/inet.h> //inet_addr
 #include <string.h>
 #include <pthread.h>
-#include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <netinet/in.h>

@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>
 #include <time.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -65,7 +64,6 @@ int getChar()
 	if (pressedK == 'q')
 	{
 		stopServer.stopC = 1;
-		printf("The client has stopped\n");
 		close(sock);
 		return 1;
 	}
@@ -195,13 +193,19 @@ int fileRead(int socket, char *txtName)
 //If CPU creates random process
 void *autoCPU(int socket)
 {
-	int time1, time2, burst1, burst2;
-	printf("Write waiting time and burst range for random at creating process: \n");
-	scanf("%d %d %d %d", &time1, &time2, &burst1, &burst2);
+	int minTime, maxTime, minBurst, maxBurst;
+	printf("Write min burst range for random at creating process: \n");
+	scanf("%d", &minBurst);
+	printf("Write max burst range for random at creating process: \n");
+	scanf("%d", &maxBurst);
+	printf("Write min waiting time  at creating process: \n");
+	scanf("%d", &minTime);
+	printf("Write max waiting time  at creating process: \n");
+	scanf("%d", &maxTime);
 	
 	while(getChar() != 1 & stopServer.stopC != 1)
 	{
-		randProcess(socket, time1, time2, burst1, burst2);
+		randProcess(socket, minTime, maxTime, minBurst, maxBurst);
 	}
 	
 }
