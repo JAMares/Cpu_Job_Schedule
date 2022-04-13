@@ -3,6 +3,7 @@
 #include <arpa/inet.h> //inet_addr
 #include <string.h>
 #include <pthread.h>
+#include <signal.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <netinet/in.h>
@@ -14,22 +15,10 @@ int socket_desc, new_socket, c, valread, cpu_ocioso;
 struct sockaddr_in server, client;
 struct Queue *ready;
 struct Queue *done;
+pthread_t job, cpu;
 
 time_t beginExecution;
 time_t endExecution;
-
-struct tm tm;
-
-time_t sec1(){
-    time_t time2;
-    
-    // time after sleep in loop.
-    time(&time2);
-    tm = *localtime(&time2);
-    printf(" %02d:%02d:%02d\n", tm.tm_hour, tm.tm_min, tm.tm_sec);
-    
-    return time2;
-}
 
 // Process PCN
 struct PCB
@@ -85,7 +74,6 @@ int getChar();
 int calculateTAT(struct PCB process)
 {
 	int tat = process.endTime - process.startTime;
-	 //printf("tat proceso %d: %d\n", process.pId, tat);
 	return tat;
 }
 
@@ -93,10 +81,6 @@ int calculateTAT(struct PCB process)
 int calculateWT(struct PCB process)
 {
 	int wt = calculateTAT(process) - process.burst;
-	 //printf("Start time: %d\n", process.startTime);
-	 //printf("End time: %d\n", process.endTime);
-	 //printf("Burst: %d\n", process.burst);
-	 //printf("wt proceso %d: %d\n", process.pId, wt);
 	return wt;
 }
 
@@ -153,7 +137,6 @@ void dataPlanning()
 		printf("Process ID:\t%d\t\t%d\t\t%d\n", id, calculateTAT(pcb), calculateWT(pcb));
 		tmp = tmp->next;
 	}
-	// free(tmp);
 	printf("\n\t------------End of table-------------\n\n");
 }
 
@@ -223,6 +206,7 @@ int getChar()
 	if (pressedK == 'q')
 	{
 		char *msg = "\nServer has done\n";
+
 		send(new_socket, msg, strlen(msg), 0);
 		close(new_socket);
 		return 1;
@@ -259,7 +243,6 @@ int insertProcess(struct Queue *q, struct PCB pcb)
 // This functions transfers a process node from a ready queue to a done queue
 int finishProcess(struct Queue *r, struct Queue *d, int pId)
 {
-	endExecution = time(NULL);
 	while (stopServer.stopC != 1 & getChar() != 1)
 	{
 		struct Node *prev = NULL;
@@ -413,6 +396,7 @@ void fifo(struct Queue *r, struct Queue *d)
 			printNode(initNode);
 			// Print process by n time with sleep
 			printExecution(timer);
+			endExecution = time(NULL);
 			initNode->process.timeExecute += timer;
 			printf("Process #%d has ended with burst: %d\n", initNode->process.pId, burst);
 			finishProcess(r, d, initNode->process.pId);
@@ -440,6 +424,7 @@ void sjf(struct Queue *r, struct Queue *d)
 			printNode(initNode);
 			// Print process by n time with sleep
 			printExecution(timer);
+			endExecution = time(NULL);
 			initNode->process.timeExecute += timer;
 			printf("Process #%d has ended with burst: %d\n", initNode->process.pId, burst);
 			finishProcess(r, d, initNode->process.pId);
@@ -467,6 +452,7 @@ void hpf(struct Queue *r, struct Queue *d)
 			printNode(initNode);
 			// Print process by n time with sleep
 			printExecution(timer);
+			endExecution = time(NULL);
 			initNode->process.timeExecute += timer;
 			printf("Process #%d has ended with burst: %d\n", initNode->process.pId, burst);
 			finishProcess(r, d, initNode->process.pId);
@@ -486,11 +472,11 @@ void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 	{
 		// Find process to execute
 		struct Node *initNode = searchProcessById(r, pId);
-		int time = initNode->process.burst - initNode->process.timeExecute;
+		int timer = initNode->process.burst - initNode->process.timeExecute;
 		printf("\nProcessing Node: %d", initNode->process.pId);
 		printNode(initNode);
 		// End process or execute by quantum
-		if (time > quantum & stopServer.stopC != 1 & getChar() != 1)
+		if (timer > quantum & stopServer.stopC != 1 & getChar() != 1)
 		{
 			printExecution(quantum);
 			printf("Process #%d has been executed with quantum of %d\n", initNode->process.pId, quantum);
@@ -501,8 +487,9 @@ void RoundRobin(struct Queue *r, struct Queue *d, int quantum, int pId)
 		else if (getChar() != 1 & stopServer.stopC != 1)
 		{
 			// Print process by n time with sleep
-			printExecution(time);
-			initNode->process.timeExecute += time;
+			printExecution(timer);
+			endExecution = time(NULL);
+			initNode->process.timeExecute += timer;
 			printf("Process #%d has ended with burst: %d\n", initNode->process.pId, initNode->process.burst);
 			return;
 		}
@@ -651,7 +638,6 @@ void *JOB_Scheduler(void *launch_data)
 {
 	// Vars to read from client socket and insert process
 	struct startJobScheduler *my_job_launch = (struct startJobScheduler *)launch_data;
-	// int socket = my_job_launch->socket;
 	struct Queue *r = my_job_launch->queue;
 	char buffer1[2000] = {};
 	char msg[35] = "Process has been created with PID #";
@@ -703,8 +689,6 @@ void *JOB_Scheduler(void *launch_data)
 		// Cycle to continue reading from client socket
 		while ((read_size = recv(new_socket, buffer1, 2000, 0)) > 0)
 		{
-			//printf("New process at: ");
-			//sec1();
 			sPID = numberToString(pID);
 			dataPCB = splitChar(buffer1, limit);
 			struct PCB *process = malloc(sizeof(struct PCB));
@@ -713,10 +697,7 @@ void *JOB_Scheduler(void *launch_data)
 			process->priority = dataPCB[1];
 			process->pId = pID;
 			process->timeExecute = 0;
-			//printf("Burst: %d\n", dataPCB[0]);
-			//printf("Priority: %d\n", dataPCB[1]);
-			//printf("Process ID: %d\n\n", pID);
-
+	
 			// Thread insert process into ready queue
 			pthread_create(&thrd, NULL, makeProcess, (void *)process);
 			pthread_join(thrd, NULL);
@@ -731,7 +712,6 @@ void *JOB_Scheduler(void *launch_data)
 		//printf("\nClient conection has ended, waiting for new one...\n");
 	}
 	printf("\nJob Scheduler has done\n");
-	// printf("Muere Job Scheduler\n");
 }
 
 int getAlgoritm()
@@ -784,7 +764,6 @@ int main(int argc, char *argv[])
 
 	ready = (struct Queue *)malloc(sizeof(struct Queue));
 	done = (struct Queue *)malloc(sizeof(struct Queue));
-	// printf("queue done\n\n");
 	ready->first = NULL;
 	ready->last = NULL;
 	done->first = NULL;
@@ -803,7 +782,6 @@ int main(int argc, char *argv[])
 		cpuData->quantum = quamt();
 	}
 
-	pthread_t job, cpu;
 
 	pthread_create(&job, NULL, JOB_Scheduler, (void *)launch);
 	pthread_create(&cpu, NULL, CPU_Scheduler, (void *)cpuData);
@@ -812,7 +790,7 @@ int main(int argc, char *argv[])
 	{
 		continue;
 	}
-
+	
 	float tat = averageTAT(done);
 	float wt = averageWT(done);
 

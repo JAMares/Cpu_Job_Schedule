@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <signal.h>
 #include <time.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -31,19 +32,6 @@ struct Stop
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
-  
-struct tm tm;
-
-time_t sec1(){
-    time_t time2;
-    
-    // time after sleep in loop.
-    time(&time2);
-    tm = *localtime(&time2);
-    printf(" %02d:%02d:%02d\n", tm.tm_hour, tm.tm_min, tm.tm_sec);
-    
-    return time2;
-}
 
 struct Stop stopServer;
 int sock = 0;
@@ -115,8 +103,6 @@ char *numberToString(int number)
 void *sendProcessSocket(void *msg)
 {
 	sleep(2);
-	//printf("Sent at:");
-	//sec1();
 	while (stopServer.stopC != 1 & getChar() != 1)
 	{
 		struct Message *my_msg = (struct Message *)msg;
@@ -137,11 +123,8 @@ void sendProcess(int burst, int priority, int socket)
 {
 	while (stopServer.stopC != 1 & getChar() != 1)
 	{
-		//printf("\nCreated at: ");
-		//sec1();
-		//printf("Burst: %d\n", burst);
-		//printf("Priority: %d\n", priority);
-
+	
+		pthread_t thrd;
 		char *msgOut = numberToString(burst);
 		char *numString = numberToString(priority);
 		msgOut = ConcatCharToCharArray(msgOut, ',');
@@ -152,24 +135,22 @@ void sendProcess(int burst, int priority, int socket)
 		msg->socket = socket;
 
 		// Created thread and function call
-		pthread_t thrd;
 		pthread_create(&thrd, NULL, sendProcessSocket, (void *)msg);
-		//pthread_join(thrd, NULL);
+		pthread_join(thrd, NULL);
 		break;
 	}
 }
 
 // Make random data by socket to server
-void randProcess(int socket, int time1, int time2, int burst1, int burst2)
+void randProcess(int socket, int minTime, int maxTime, int minBurst, int maxBurst)
 {
 	
 	while (stopServer.stopC != 1 & getChar() != 1)
 	{
-		int burst = rand() % (burst2 + 1 - burst1) + burst1;
+		int burst = rand() % (maxBurst + 1 - minBurst) + minBurst;
 		int priority = rand() % (5 + 1 - 1) + 1;
 		sendProcess(burst, priority, socket);
-		int time = rand() % (time2 + 1 - time1) + time1;
-		//printf("Timeout to create next process: %d\n", time);
+		int time = rand() % (maxTime + 1 - minTime) + minTime;
 		sleep(time);
 		break;
 	}
@@ -193,18 +174,14 @@ int fileRead(int socket, char *txtName)
 			return 0;
 		}
 		
-		//int count = 1;
-
+		
 		// checks file for each line
 		while (fscanf(reader, "%d %d", &burst, &priority) == 2)
 		{
 			time = rand() % (8 + 1 - 3) + 3;
 			// Send data by socket  to server
 			sendProcess(burst, priority, socket);
-			//printf("Process id: %d\n", count);
-			//printf("Timeout to create next process: %d\n", time);
 			sleep(time);
-			//count++;
 
 			// Each time should have a certain amount of sleep
 			// Here is where you send the data through the sockets on individual threads
@@ -221,13 +198,10 @@ void *autoCPU(int socket)
 	int time1, time2, burst1, burst2;
 	printf("Write waiting time and burst range for random at creating process: \n");
 	scanf("%d %d %d %d", &time1, &time2, &burst1, &burst2);
-	//int count = 1;
 	
 	while(getChar() != 1 & stopServer.stopC != 1)
 	{
-		//printf("\nProcess id: %d\n", count);
 		randProcess(socket, time1, time2, burst1, burst2);
-		//count++;
 	}
 	
 }
