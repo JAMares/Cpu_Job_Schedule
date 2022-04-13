@@ -15,52 +15,48 @@
 #define COLS 2
 #define PORT 8080
 
-//Message structure
+// Message structure
 struct Message
 {
 	int socket;
 	char *message;
 };
 
-//Stop structure
+// Stop structure
 struct Stop
 {
 	int stopC;
 };
 
-#include <stdio.h>
-#include <time.h>
-#include <unistd.h>
-
 struct Stop stopServer;
 int sock = 0;
 
-//Reads keyboard
+// Reads keyboard
 int getChar()
 {
 	int pressedK;
-	//struct with terminal information
+	// struct with terminal information
 	struct termios staryTermios, novyTermios;
 	int actualF, futureF;
 
 	novyTermios = staryTermios;
-	//Search for IO signals
+	// Search for IO signals
 	novyTermios.c_lflag &= ~(ICANON);
 
-	//System call with flags
+	// System call with flags
 	actualF = fcntl(STDIN_FILENO, F_GETFL);
-	futureF= actualF;
-	
-	//Non-blocking function
+	futureF = actualF;
+
+	// Non-blocking function
 	futureF |= O_NONBLOCK;
-	
-	//System call with flags
+
+	// System call with flags
 	fcntl(STDIN_FILENO, F_SETFL, futureF);
-	
-	//If a keyboard is pressed
+
+	// If a keyboard is pressed
 	pressedK = getchar();
-	
-	//Client exits
+
+	// Client exits
 	if (pressedK == 'q')
 	{
 		stopServer.stopC = 1;
@@ -121,7 +117,7 @@ void sendProcess(int burst, int priority, int socket)
 {
 	while (stopServer.stopC != 1 & getChar() != 1)
 	{
-	
+
 		pthread_t thrd;
 		char *msgOut = numberToString(burst);
 		char *numString = numberToString(priority);
@@ -142,7 +138,7 @@ void sendProcess(int burst, int priority, int socket)
 // Make random data by socket to server
 void randProcess(int socket, int minTime, int maxTime, int minBurst, int maxBurst)
 {
-	
+
 	while (stopServer.stopC != 1 & getChar() != 1)
 	{
 		int burst = rand() % (maxBurst + 1 - minBurst) + minBurst;
@@ -171,8 +167,7 @@ int fileRead(int socket, char *txtName)
 		{
 			return 0;
 		}
-		
-		
+
 		// checks file for each line
 		while (fscanf(reader, "%d %d", &burst, &priority) == 2)
 		{
@@ -190,27 +185,26 @@ int fileRead(int socket, char *txtName)
 	return 1;
 }
 
-//If CPU creates random process
+// If CPU creates random process
 void *autoCPU(int socket)
 {
 	int minTime, maxTime, minBurst, maxBurst;
-	printf("Write min burst range for random at creating process: \n");
+	printf("Input MIN burst range for random when creating process: \n");
 	scanf("%d", &minBurst);
-	printf("Write max burst range for random at creating process: \n");
+	printf("Input MAX burst range for random when creating process: \n");
 	scanf("%d", &maxBurst);
-	printf("Write min waiting time  at creating process: \n");
+	printf("Input MIN sleep time for random when creating process: \n");
 	scanf("%d", &minTime);
-	printf("Write max waiting time  at creating process: \n");
+	printf("Input MAX sleep time for random when creating process: \n");
 	scanf("%d", &maxTime);
-	
-	while(getChar() != 1 & stopServer.stopC != 1)
+
+	while (getChar() != 1 & stopServer.stopC != 1)
 	{
 		randProcess(socket, minTime, maxTime, minBurst, maxBurst);
 	}
-	
 }
 
-//If CPU reads process from file
+// If CPU reads process from file
 void *manualCPU(int socked)
 {
 	char archive[100];
@@ -222,7 +216,7 @@ void *manualCPU(int socked)
 	fileRead(socked, archive);
 }
 
-//main menu
+// main menu
 void *mainMenu(int socket)
 {
 	int choice;
@@ -260,7 +254,7 @@ int main()
 	int valread;
 	struct sockaddr_in serv_addr;
 	char *msg = "Client sends";
-	
+
 	// SOCKET CREATION
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 	{
@@ -271,7 +265,7 @@ int main()
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_port = htons(PORT);
 
-	//Convert adress IP
+	// Convert adress IP
 	if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)
 	{
 		printf("\nInvalid address\n");
@@ -285,9 +279,9 @@ int main()
 	}
 
 	mainMenu(sock);
-	
-	printf("\nClient has done\n");
-	
+
+	printf("\nClient simulation finished\n");
+
 	close(sock);
 
 	return 0;

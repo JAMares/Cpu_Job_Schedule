@@ -583,7 +583,7 @@ void *CPU_Scheduler(void *data)
 					tmp = r->first;
 					id = tmp->process.pId;
 				}
-				
+
 				// Execute Round Robin algorithm
 				RoundRobin(r, d, quantum, id);
 
@@ -674,7 +674,7 @@ void *JOB_Scheduler(void *launch_data)
 		printf("Bind fails\n");
 		return NULL;
 	}
-	puts("Bind is conected\n\nWaiting for clients...\n");
+	puts("Bind is connected\n\nWaiting for clients...\n");
 
 	// Listen
 	listen(socket_desc, 0);
@@ -696,7 +696,7 @@ void *JOB_Scheduler(void *launch_data)
 			process->priority = dataPCB[1];
 			process->pId = pID;
 			process->timeExecute = 0;
-	
+
 			// Thread insert process into ready queue
 			pthread_create(&thrd, NULL, makeProcess, (void *)process);
 			pthread_join(thrd, NULL);
@@ -708,9 +708,9 @@ void *JOB_Scheduler(void *launch_data)
 			pID++;
 			strcpy(buffer1, "");
 		}
-		//printf("\nClient conection has ended, waiting for new one...\n");
+		// printf("\nClient conection has ended, waiting for new one...\n");
 	}
-	printf("\nJob Scheduler has done\n");
+	printf("\nJob Scheduler finished\n");
 }
 
 int getAlgoritm()
@@ -752,7 +752,7 @@ int quamt()
 {
 	int qm;
 
-	printf("Write the RR time: \n");
+	printf("Write the RR quantum: \n");
 	scanf("%d", &qm);
 	return qm;
 }
@@ -781,7 +781,6 @@ int main(int argc, char *argv[])
 		cpuData->quantum = quamt();
 	}
 
-
 	pthread_create(&job, NULL, JOB_Scheduler, (void *)launch);
 	pthread_create(&cpu, NULL, CPU_Scheduler, (void *)cpuData);
 
@@ -789,7 +788,7 @@ int main(int argc, char *argv[])
 	{
 		continue;
 	}
-	
+
 	float tat = averageTAT(done);
 	float wt = averageWT(done);
 
@@ -800,9 +799,8 @@ int main(int argc, char *argv[])
 
 	printf("\nTAT average of process: %f\n", tat);
 	printf("WT average of process: %f\n", wt);
-	
-	printf("\nServer has done\n");
+
+	printf("\nServer simulation has finished\n");
 
 	return 0;
 }
-
